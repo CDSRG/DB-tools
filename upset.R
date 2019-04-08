@@ -38,10 +38,21 @@ if (is.character(data[,i])) == TRUE {
 	data[which(is.na(data[,i])),i] <- 0
 }
 
+#below is the original code with an added test for numeric data
+if (is.numeric(data[,i])) == TRUE {
+	data[which(!is.na(data[,i])),i] <- 1
+  	data[which(is.na(data[,i])),i] <- 0
+}
+
 #below=original code to convert any (not just numeric without statement coercing the dataframe to numeric?) data to binary values
+#I removed the statement to coerce the data frame to numeric to accommodate the data type checking situation, 
+#but I probably should have just commented it out instead.
     data[which(!is.na(data[,i])),i] <- 1
     data[which(is.na(data[,i])),i] <- 0
   }
+#thinking and intent behind above loop:
+#use the original for loop to assess one column at a time and take action based on each column's data type
+
   if (is.na(width)) { width <- max(8, floor(ncols/5)) }
   if (is.na(height)) { height <- max(8, floor(ncols/2)) }
   if (is.na(nsets)) { nsets <- ncols }

@@ -1,7 +1,6 @@
 # DEFINE table_column_upset() FUNCTION to visualize upset plot of columns
 # -- in this case, tailored to summarize completeness of data
-table_column_upset <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA,
-...) {
+table_column_upset <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, ...) {
   data <- as.data.frame(data)
   ncols <- dim(data)[2]
   if (ncols <= 0) { return() }

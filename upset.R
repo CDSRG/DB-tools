@@ -62,15 +62,30 @@ if (is.numeric(data[,i])) == TRUE {
 #thinking and intent behind above loop:
 #use the original for loop to assess one column at a time and take action based on each column's data type
 
+
+
+#attempt to modify call to upset() to include a variable for specifying which columns to visualize in the plot
+#user will have to assign a vector of values to the variable
+#assumption: okay to include index parameters with data frame when using upset function
+
+colsToVis <- c(3:12)
+#variable initialized to values in Appendix 8
+
   if (is.na(width)) { width <- max(8, floor(ncols/5)) }
   if (is.na(height)) { height <- max(8, floor(ncols/2)) }
   if (is.na(nsets)) { nsets <- ncols }
   if (!is.null(pdf)) {
     pdf(file=pdf, width=width, height=height)
-    upset(data, nsets=nsets, ...)
-    dev.off()
+
+#adding variable for parameters
+    upset(data[,colsToVis], nsets=nsets, ...)
+ 
+
+   dev.off()
   }
   else {
-    upset(data, nsets=nsets, ...)
+
+#adding variable for parameters
+    upset(data[,colsToVis], nsets=nsets, ...)
   }
 }

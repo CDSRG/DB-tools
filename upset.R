@@ -1,3 +1,59 @@
+# Define generic upsetDB() function
+upsetDB <- function (x, ...) {
+  UseMethod("upsetDB", x)
+}
+
+# upsetDB() method to handle missing input
+setMethod("upsetDB", "missing",
+  function(x, ...) {
+    warning("argument 'x' is missing, with no default")
+    return()
+  }
+)
+
+# upsetDB() method to handle NULL input
+setMethod("upsetDB", "NULL",
+  function(x, ...) {
+    warning("argument 'x' cannot be NULL")
+    return()
+  }
+)
+
+# upsetDB() method to handle matrix input
+setMethod("upsetDB", "matrix",
+  function(x, ...) {
+    print("A")
+    upsetDB(as.data.frame(x), ...)
+  }
+)
+
+# upsetDB() method to handle data.frame input
+setMethod("upsetDB", "data.frame",
+  function(x, ...) {
+    upsetDBviz(x, ...)
+  }
+)
+
+# upsetDB() method to handle DB connection + query input
+setMethod("upsetDB", "RODBC",
+  function(x, query=NULL, ...) {
+    if(!is.character(query)) {
+      warning("argument 'query' is not valid (must of type 'character')")
+      return()
+    }
+    results <- tryCatch(
+      sqlQuery(x, query, ...),
+      error = function(e) {
+        warning(paste("error evaluating query '", query, "' using provided DB connection", sep=""))
+        warning(e)
+        return()
+      }
+    )
+    upsetDBviz(results, ...)
+    return(results)
+  }
+)
+
 #original code acquires prepopulated data frame "data" before function begins
 #modify to initialize "data" with DB connection during function call
 #also modify to add statement assigning results of sql query to another variable -- 
@@ -5,12 +61,10 @@
 # two persiting variables will  represent the same data (correlate by index)
 
 
-# DEFINE table_column_upset() FUNCTION to visualize upset plot of columns
+# DEFINE upsetDBviz() FUNCTION to visualize upset plot of columns
 # -- in this case, tailored to summarize completeness of data
-table_column_upset <- function(data=(sqlQuery(con, "SELECT <columns> FROM <table>")), pdf=NULL, width=NA, height=NA, nsets=NA, ...) {
+upsetDBviz <- function(data=(sqlQuery(con, "SELECT <columns> FROM <table>")), pdf=NULL, width=NA, height=NA, nsets=NA, ...) {
   results <- data
-#need to coerce "results" to data frame?
-  data <- as.data.frame(data)
   ncols <- dim(data)[2]
   if (ncols <= 0) { return() }
   for (i in 1:ncols) {

@@ -22,7 +22,6 @@ setMethod("upsetDB", "NULL",
 # upsetDB() method to handle matrix input
 setMethod("upsetDB", "matrix",
   function(x, ...) {
-    print("A")
     upsetDB(as.data.frame(x), ...)
   }
 )
@@ -63,7 +62,7 @@ setMethod("upsetDB", "RODBC",
 
 # DEFINE upsetDBviz() FUNCTION to visualize upset plot of columns
 # -- in this case, tailored to summarize completeness of data
-upsetDBviz <- function(data=(sqlQuery(con, "SELECT <columns> FROM <table>")), pdf=NULL, width=NA, height=NA, nsets=NA, ...) {
+upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, ...) {
   results <- data
   ncols <- dim(data)[2]
   if (ncols <= 0) { return() }

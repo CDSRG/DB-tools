@@ -62,15 +62,21 @@ setMethod("upsetDB", "RODBC",
 
 # DEFINE upsetDBviz() FUNCTION to visualize upset plot of columns
 # -- in this case, tailored to summarize completeness of data
-upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL, ...) {
+upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL, use.columns=NULL, ...) {
 	ncols <- dim(data)[2]
 	if (ncols <= 0) { 
 		warning("cannot visualize upset plot for empty data")
 		return()
 	}
+	if (is.null(use.columns)) {
+		cols <- 1:ncols
+	}
+	else {
+		cols <- use.columns	
+	}
 	mode <- match.arg(mode, choices=c("presence"))
 	if (mode == "presence") {
-		for (i in 1:ncols) {
+		for (i in cols) {
 			data[,i] <- as.numeric(data[,i])
 			na.data <- is.na(data[,i])
 			data[which(!na.data), i] <- 1
@@ -125,7 +131,6 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 #user will have to assign a vector of values to the variable
 #assumption: okay to include index parameters with data frame when using upset function
 
-	colsToVis <- c(3:12)
 #variable initialized to values in Appendix 8
 
 	if (is.na(width)) { width <- max(8, floor(ncols/5)) }
@@ -135,7 +140,7 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
     	pdf(file=pdf, width=width, height=height)
 
 #adding variable for parameters
-		upset(data[,colsToVis], nsets=nsets, ...)
+		upset(data[,cols], nsets=nsets, ...)
  
 
 		dev.off()
@@ -143,6 +148,6 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 	else {
 
 #adding variable for parameters
-		upset(data[,colsToVis], nsets=nsets, ...)
+		upset(data[,cols], nsets=nsets, ...)
 	}
 }

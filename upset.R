@@ -85,7 +85,7 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 
 	if (class(data[,i]) == "logical") {
 		data[which(data[,i] == TRUE), i] <- 1
-		data[which(data[,i] == FALSE, i] <- 0
+		data[which(data[,i] == FALSE), i] <- 0
 		data[which(is.na(data[,i])),i] <- 0
 	}
 

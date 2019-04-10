@@ -83,7 +83,7 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 #If it were the FALSE values that were important to know about, FALSE should be assigned 1 and TRUE 0 (no change for is.na).
 #checks all values for data type? -- only needs to check one non-null entry per column
 
-	if (is.logical(data[,i])) == TRUE {
+	if (class(data[,i]) == "logical") {
 		data[which(data[,i] == TRUE), i] <- 1
 		data[which(data[,i] == FALSE, i] <- 0
 		data[which(is.na(data[,i])),i] <- 0
@@ -96,13 +96,13 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 #options: could check each element for any of a list of particular strings (0 if NULL or not on list, 1 if value on list)
 
 #below is option to convert based on presence or absence (the actual test of data type might not be necessary)
-	if (is.character(data[,i])) == TRUE {
+	if (class(data[,i]) == "character") {
 		data[which(!is.na(data[,i])),i] <- 1
    		data[which(is.na(data[,i])),i] <- 0
 	}
 
 #below is option to convert based on finding certain strings
-	if (is.character(data[,i])) == TRUE {
+	if (class(data[,i]) == "character") {
 		stringSearch <- c("one", "two", "three")
 		data[(which(data[,i] %in% stringSearch)),i] <- 1
 #above may not have correct parentheses?
@@ -111,7 +111,7 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 	}
 
 #below is the original code with an added test for numeric data
-	if (is.numeric(data[,i])) == TRUE {
+	if (class(data[,i]) == "numeric") {
 		data[which(!is.na(data[,i])),i] <- 1
   		data[which(is.na(data[,i])),i] <- 0
 	}

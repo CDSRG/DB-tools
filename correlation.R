@@ -73,6 +73,18 @@ spearmanCorr <- cor.test(x=attendedBirth, y=maternalMortality, method = 'spearma
 spearmanT <- spearmanCorr$statistic
 spearmanP <- spearmanCorr$p.value
 
+install.packages("ggcorrplot")
+library(ggcorrplot)
+ggcorrplot(birthMortality)
+#note: above looks wrong -- especially compared to demo
+#for demo, more info, see http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2
+#also note: function designed to work with more comparisons
+ggcorrplot(birthMortality, method = "circle")
+#above has same concerns as previous
+#can use parameters to reorder the clustering -- needs bigger dataset
+ggcorrplot(x, hc.order = TRUE, outline.col = "white")
+#lots of nice parameters available
+
 #add assessment of missingness
 #add assessment of outliers/unusual values
 #eventually format to give all (or desired part) info in single

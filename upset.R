@@ -53,12 +53,6 @@ setMethod("upsetDB", "RODBC",
 	}
 )
 
-#original code acquires prepopulated data frame "data" before function begins
-#modify to initialize "data" with DB connection during function call
-#also modify to add statement assigning results of sql query to another variable -- 
-# at conclusion of function, two variables will persist (one holding binary data, one holding original sql results) -- 
-# two persiting variables will  represent the same data (correlate by index)
-
 
 # DEFINE upsetDBviz() FUNCTION to visualize upset plot of columns
 # -- in this case, tailored to summarize completeness of data
@@ -74,10 +68,6 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 	else {
 		cols <- use.columns	
 	}
-	if (length(cols) < 2) {
-		warning("cannot visualize upset plot for a single variable")
-		return()
-	}
 	mode <- match.arg(mode, choices=c("presence"))
 	if (mode == "presence") {
 		for (i in cols) {
@@ -87,7 +77,29 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 			data[which(na.data), i] <- 0
 		}
 	}
+	if (is.na(width)) { width <- max(8, floor(ncols/5)) }
+	if (is.na(height)) { height <- max(8, floor(ncols/2)) }
+	if (is.na(nsets)) { nsets <- ncols }
+	if (!is.null(pdf)) {
+    	pdf(file=pdf, width=width, height=height)
 
+#adding variable for parameters
+		upset(data[,cols], nsets=nsets, ...)
+ 		dev.off()
+	}
+	else {
+
+#adding variable for parameters
+		upset(data[,cols], nsets=nsets, ...)
+	}
+}
+
+
+#original code acquires prepopulated data frame "data" before function begins
+#modify to initialize "data" with DB connection during function call
+#also modify to add statement assigning results of sql query to another variable -- 
+# at conclusion of function, two variables will persist (one holding binary data, one holding original sql results) -- 
+# two persiting variables will  represent the same data (correlate by index)
 #test for boolean data and convert TRUE to 1 and FALSE to 0 if data is boolean 
 #I don't know if SQL boolean data will come into R as logical or character.  Assuming logical.
 #If it were the FALSE values that were important to know about, FALSE should be assigned 1 and TRUE 0 (no change for is.na).
@@ -135,23 +147,4 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 #user will have to assign a vector of values to the variable
 #assumption: okay to include index parameters with data frame when using upset function
 
-#this code is just to scale pdf plot to increase with larger datasets
-
-	if (is.na(width)) { width <- max(8, floor(ncols/5)) }
-	if (is.na(height)) { height <- max(8, floor(ncols/2)) }
-	if (is.na(nsets)) { nsets <- ncols }
-	if (!is.null(pdf)) {
-    	pdf(file=pdf, width=width, height=height)
-
-#adding variable for parameters
-		upset(data[,cols], nsets=nsets, ...)
- 
-
-		dev.off()
-	}
-	else {
-
-#adding variable for parameters
-		upset(data[,cols], nsets=nsets, ...)
-	}
-}
+#variable initialized to values in Appendix 8

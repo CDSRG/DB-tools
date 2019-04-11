@@ -135,7 +135,6 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 #user will have to assign a vector of values to the variable
 #assumption: okay to include index parameters with data frame when using upset function
 
-#variable initialized to values in Appendix 8
 #this code is just to scale pdf plot to increase with larger datasets
 
 	if (is.na(width)) { width <- max(8, floor(ncols/5)) }

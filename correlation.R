@@ -85,6 +85,45 @@ ggcorrplot(birthMortality, method = "circle")
 ggcorrplot(x, hc.order = TRUE, outline.col = "white")
 #lots of nice parameters available
 
+#another correlation visualization
+# http://research.stowers.org/mcm/efg/R/Visualization/cor-cluster/index.htm
+install.packages("mvtnorm")
+library(mvtnorm)
+CorrelatedXY <- function(N, mean1,mean2, 
+                          variance1,variance2, 
+                          correlation)
+ {
+   corvar <- correlation * sqrt(variance1*variance2)
+   rmvnorm(n=N,mean=c(mean1,mean2),
+   sigma=matrix(c(variance1, corvar,
+   corvar, variance2), 2,2))
+ }
+N <- 1000
+ mean1 <- 2
+ mean2 <- 5
+ variance1 <- 1
+ variance2 <- 2
+set.seed(17)
+Raw <- CorrelatedXY(N, mean1, mean2, variance1, variance2, 0.0)
+ for (i in 1:5)
+ {
+   Raw <- cbind(Raw, CorrelatedXY(N, mean1, mean2, 
+                     variance1, variance2,
+                     (-1)^i * 0.2*i) )
+}
+colnames(Raw) <- paste(rep(c("P", "P", "M", "M"), 3),
+   sprintf("%2.2d", c(0,0,2,2,4,4,6,6,8,8,10,10)),
+   rep( c("A", "B"), 6), sep="")
+round( cor(Raw), 4)
+corRaw <- cor(Raw)
+ library(spatstat) # "im" function 
+ plot(im(corRaw[nrow(corRaw):1,]), main="Correlation Matrix Map")
+#spatspat not available for R 3.5.3
+#but see demo for nice correlation map
+#package also does dissimilarity calculations and plot
+#see info at given url 
+
+
 #add assessment of missingness
 #add assessment of outliers/unusual values
 #eventually format to give all (or desired part) info in single

@@ -42,6 +42,25 @@ boxplot(birthMortality)
 #later:add best fit line
 plot(attendedBirth,maternalMortality)
 
+#better scatter plot
+#if more than two columns, will provide a matrix of scatters
+require(lattice)
+require(ggplot2)
+pairs(birthMortality)
+
+#another better scatter plot uses ggcorplot (see file)
+
+#correlation matrix
+#for more info, see http://www.sthda.com/english/wiki/ggally-r-package-extension-to-ggplot2-for-correlation-matrix-and-survival-plots-r-software-and-data-visualization
+install.packages("GGally")
+library("GGally")
+ggcorr(birthMortality)
+#can customize with parameters
+#obviously better for displaying multiple comparisons than just the one coded here
+ggpairs(birthMortality)
+#above is very nice set of graphs with scatter, line, correlation
+#use ggsurv() for Kaplan-Meier survival curves
+
 #correlation by pearson
 pearsonCorr <- cor.test(x=attendedBirth, y=maternalMortality, method = 'pearson')
 pearsonT <- pearsonCorr$statistic

@@ -116,7 +116,8 @@ colnames(Raw) <- paste(rep(c("P", "P", "M", "M"), 3),
    rep( c("A", "B"), 6), sep="")
 round( cor(Raw), 4)
 corRaw <- cor(Raw)
- library(spatstat) # "im" function 
+install.packages("spatspat") 
+library(spatstat) # "im" function 
  plot(im(corRaw[nrow(corRaw):1,]), main="Correlation Matrix Map")
 #spatspat not available for R 3.5.3
 #but see demo for nice correlation map

@@ -1,3 +1,6 @@
+install.packages('ggplot2')
+library(ggplot2)
+
 # define generic strength of association function
 assocDB <- function (x, y=NULL, ...) {
 	UseMethod("assocDB", x)
@@ -29,7 +32,7 @@ setMethod("assocDB", "matrix",
 # assocDB() method to handle data.frame input
 setMethod("assocDB", "data.frame",
 	function(x, ...) {
-		# CALL TO ACTION METHOD PASSING (x, ...)
+		assocDBviz(x, ...)
 	}
 )
 
@@ -38,7 +41,7 @@ setMethod("assocDB", "data.frame",
 setMethod("assocDB", "vector",
 	function(x, y, ...) {
 		x <- data.frame(x, y)
-		# CALL TO ACTION METHOD PASSING (x, ...)
+		assocDBviz(x, ...)
 	}
 )
 
@@ -57,8 +60,23 @@ setMethod("assocDB", "RODBC",
 				return()
 			}
 		)
-		# CALL TO ACTION METHOD PASSING (results, ...)
+		assocDBviz(results, ...)
 		return(results)
 	}
 )
+
+# define function to visualize association of variables by scatter plot with quantile lines
+assocDBviz <- function(x,...) {
+	assocPlot <- ggplot(x, aes_string(x = "", y = "")) + geom_point() + geom_quantile()
+	print(assocPlot)
+}
+
+# need to add variables to replace empty strings in aes_string call
+# better to format plot as pdf as in upsetDBviz?
+# need to find out more about mode==presence stuff in upsetDBviz
+# this function works best for two continuous variables
+# many more great possibilities in ggplot2
+# need to work on other data types and variable types
+# use set methods to get any type of data into data frame and then
+#	use overloaded method calls to generate different plots based on data type?
 

@@ -74,6 +74,10 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 	else {
 		cols <- use.columns	
 	}
+	if (length(cols) < 2) {
+		warning("cannot visualize upset plot for a single variable")
+		return()
+	}
 	mode <- match.arg(mode, choices=c("presence"))
 	if (mode == "presence") {
 		for (i in cols) {

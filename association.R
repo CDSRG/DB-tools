@@ -1,6 +1,10 @@
-install.packages('ggplot2')
+#install.packages('ggplot2')
 library(ggplot2)
+attendedBirth <- c(5,100,98,84,100,99,70,50,26,6,100,37,35,96,55,90,96,99,99,95)
+maternalMortality <- c(600,3,67,170,6,15,120,170,300,830,10,800,500,60,100,10,5,5,8,120)
 
+#create data frame
+birthMortality <- data.frame(attendedBirth, maternalMortality)
 # define generic strength of association function
 assocDB <- function (x, y=NULL, ...) {
 	UseMethod("assocDB", x)
@@ -67,7 +71,8 @@ setMethod("assocDB", "RODBC",
 
 # define function to visualize association of variables by scatter plot with quantile lines
 assocDBviz <- function(x,...) {
-	assocPlot <- ggplot(x, aes_string(x = "", y = "")) + geom_point() + geom_quantile()
+#	assocPlot <- ggplot(x, aes_string(x = "", y = "")) + geom_point() + geom_quantile()
+	assocPlot <- ggplot(x, aes(attendedBirth, maternalMortality)) + geom_point() + geom_quantile()
 	print(assocPlot)
 }
 

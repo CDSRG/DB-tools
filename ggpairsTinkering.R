@@ -11,7 +11,7 @@ corr <- cor(iris[,1:4])
 #compute a correlation p-values matrix
 p.mat <- cor_pmat(iris[,1:4])
 
-#attempt to put a user-designed function into ggpairs
+#attempt to put a user-defined function into ggpairs
 
 #develop function to insert
 #great assistance from the examples in ggcorrplot documentation
@@ -26,10 +26,10 @@ ggcorrplot(corr, hc.order = TRUE, type = "lower", outline.col = "white")
 ggcorrplot(corr, p.mat = p.mat, hc.order = TRUE, type= "lower", lab = TRUE, insig = "blank")
 
 
-#prepare ggpairs framework to take the user-designed function
+#prepare ggpairs framework to take the user-defined function
 customPairs <- ggpairs(iris, upper = "blank")
 #note: "blank" removed the categorical graphs at the edge too
-#maybe we can get them back in later
+#maybe we can get them back in later?
 #assign user-designed function to variable
 customPlot <- ggcorrplot(corr, p.mat = p.mat, hc.order = TRUE, type= "lower", lab = TRUE, insig = "blank")
 #place plot into ggpairs matrix

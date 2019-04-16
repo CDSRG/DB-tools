@@ -15,14 +15,18 @@ diag = list(continuous = "densityDiag", discrete = "barDiag", na = "naDiag"))
 
 #attempt to put a user-designed function into ggpairs
 
-testPlot <- function(data, mapping, ...){
-	ggplot(iris, aes(x,y)) + geom_point(size=2,shape=23)
-	}
-
-ggpairs(iris, upper = list(continuous = testPlot, combo = "box",discrete = "facetbar", na = "na"), 
-lower = list(continuous = "cor", combo = "facethist", discrete = "facetbar", na = "na"), 
-diag = list(continuous = "densityDiag", discrete = "barDiag", na = "naDiag"))
-
-#This works, in that it puts the "testPlot" graphs into the pairs matrix, but all the graphs are the same.
-#It isn't calculating a new graph for each pair.
-#Somehow, I must need to tell it to do all the pairs.  Loop?  Something more efficient?
+#develop function to insert
+#great assistance from the examples in ggcorrplot documentation
+library(ggcorrplot)
+#compute a correlation matrix
+corr <- cor(iris[,1:4])
+#compute a correlation p-values matrix
+p.mat <- cor_pmat(iris[,1:4])
+#visualize the correlation matrix
+ggcorrplot(corr)
+#reorder the matrix
+ggcorrplot(corr, hc.order = TRUE, outline.col = "white")
+#take just lower triangle
+ggcorrplot(corr, hc.order = TRUE, type = "lower", outline.col = "white")
+#add correlation coefficients and pvalues, leaving blank if not significant
+ggcorrplot(corr, p.mat = p.mat, hc.order = TRUE, type= "lower", lab = TRUE, insig = "blank")

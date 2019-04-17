@@ -1,3 +1,5 @@
+##### structure/blackbox of ggpairsTinkering script
+
 > attributes(customPairs)
 $names
  [1] "data"                "plots"               "title"               "xlab"                "ylab"                "showStrips"          "xAxisLabels"         "yAxisLabels"        
@@ -13,7 +15,9 @@ $class
 [1] 5
 > nrow(customPairs)
 NULL
+
 > customPairs$plots
+##### this section is preparing the plot for the upper left corner (distribution of sepal.length)
 [[1]]
 $fn
 function (data, mapping, ...) 
@@ -63,6 +67,7 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+##### this section prepares the blank section in the second position of the top row
 [[2]]
 $fn
 function (data, mapping, ...) 
@@ -117,9 +122,13 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+##### this section refers to the part of the matrix grid where I inserted the scatterplot with quantile lines
 [[3]]
 Smoothing formula not specified. Using: y ~ x
 
+
+##### this is another blank section
 [[4]]
 $fn
 function (data, mapping, ...) 
@@ -174,6 +183,7 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+##### this is the blank section from the top row where the boxplot would have gone
 [[5]]
 $fn
 function (data, mapping, ...) 
@@ -228,6 +238,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+##### scatterplot second row first column
 [[6]]
 $fn
 function (data, mapping, ...) 
@@ -269,6 +281,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+##### frequency for sepal.width
 [[7]]
 $fn
 function (data, mapping, ...) 
@@ -318,6 +332,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+##### second row, third column, blank
 [[8]]
 $fn
 function (data, mapping, ...) 
@@ -372,8 +388,12 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+##### inserted correlation matrix visualization
 [[9]]
 
+
+#####second row, last column, blank
 [[10]]
 $fn
 function (data, mapping, ...) 
@@ -428,6 +448,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+##### third row, first column, scatter
 [[11]]
 $fn
 function (data, mapping, ...) 
@@ -469,6 +491,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+##### third row, second column, scatter
 [[12]]
 $fn
 function (data, mapping, ...) 
@@ -510,6 +534,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+##### third row, center column, frequency dist
 [[13]]
 $fn
 function (data, mapping, ...) 
@@ -559,6 +585,7 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+#####third row, fourth column, blank
 [[14]]
 $fn
 function (data, mapping, ...) 
@@ -613,6 +640,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+#####third row, fifth column, blank
 [[15]]
 $fn
 function (data, mapping, ...) 
@@ -667,6 +696,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+#####fourth row, first column
 [[16]]
 $fn
 function (data, mapping, ...) 
@@ -708,6 +739,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+#####fourth row, second column
 [[17]]
 $fn
 function (data, mapping, ...) 
@@ -749,6 +782,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+#####fourth row, third column
 [[18]]
 $fn
 function (data, mapping, ...) 
@@ -790,6 +825,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+#####fourth row, fourth column
 [[19]]
 $fn
 function (data, mapping, ...) 
@@ -839,6 +876,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+#####fourth row, fifth column, blank
 [[20]]
 $fn
 function (data, mapping, ...) 
@@ -893,6 +932,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+#####fifth row, first column, histogram by species
 [[21]]
 $fn
 function (data, mapping, ...) 
@@ -952,6 +993,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+#####fifth row, second column
 [[22]]
 $fn
 function (data, mapping, ...) 
@@ -1011,6 +1054,7 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+#####fifth row, third column
 [[23]]
 $fn
 function (data, mapping, ...) 
@@ -1070,6 +1114,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+####fifth row, fourth column
 [[24]]
 $fn
 function (data, mapping, ...) 
@@ -1129,6 +1175,8 @@ NULL
 attr(,"class")
 [1] "ggmatrix_plot_obj"
 
+
+####bottom right corner ----bar graph
 [[25]]
 $fn
 function (data, mapping, ...) 

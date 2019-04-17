@@ -21,11 +21,11 @@ plotList <- list(plot1, plot2, plot3, plot4)
 plotMatrix <- ggmatrix(
   plotList,
   2, 2,
-  xAxisLabels = NULL, yAxisLabels = NULL,
+  xAxisLabels = c("a","b"), yAxisLabels = c("c","d"),
   byrow = TRUE,
   showStrips = TRUE,
   showAxisPlotLabels = TRUE, showXAxisPlotLabels = TRUE, showYAxisPlotLabels = TRUE,
-  labeller = NULL, switch = NULL
+  title="test", xlab="x label", ylab="y label"
 )
 
 ### call matrix to display

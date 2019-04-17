@@ -14,25 +14,17 @@ setMethod("plotPairs",
 )
 
 ##DEFINE METHOD TO HANDLE CLASS: "ExpressionSet"
-setMethod("plotPairs", 
-	signature=c("ExpressionSet"), 
-	function (x, element="exprs", ...) {
-		if (!validObject(x)) {
-			stop("argument 'x' not a valid ExpressionSet object")
-		}
-		callGeneric(assayDataElement(x, element), ...)
-	}
-)
+#removed because CDW data does not include this sort of genetic data
 
 ##DEFINE MAIN plotPairs() METHOD TO HANDLE CLASS: "matrix"
 setMethod("plotPairs", 
 	signature=c("matrix"), 
-	function(x, samples=NULL, scale=TRUE, groups=TRUE, dist.method="euclidean", hclust.method="ward.D", k=NULL, cor.method="pearson", ...) {
+	function(x, scale=TRUE, groups=TRUE, dist.method="euclidean", hclust.method="ward.D", k=NULL, cor.method="pearson", ...) {
 		par.initial <- par()
-		x <- getSamples(as.matrix(x), samples, ...)
+#####		x <- NEED TO ASSIGN -- REMOVED CALL TO getSamples
 		N <- dim(x)[2]
 		if (N < 2) {
-			stop("need to compare at least 2 samples at a time")
+			stop("need to compare at least 2 variables at a time")
 		}
 		data.cluster <- hclust(dist(t(x), method=dist.method, ...), method=hclust.method)
 		data.order <- data.cluster$order
@@ -60,10 +52,10 @@ setMethod("plotPairs",
 		layout(matrix(data=1, nrow=1, ncol=1))
 		par(mfg=c(1, 1), mar=c(0, 0, 0, 0), mgp=c(1, 0, 0), pin=c(fin[1]-1.05, fin[2]-1.05))
 		if (groups) {
-			xlab <- paste(N, " samples, ", max(data.groups), " groups", sep="")
+			xlab <- paste(N, " ASSIGN, ", max(data.groups), " ASSIGN", sep="")
 		}
 		else {
-			xlab <- paste(N, " samples", sep="")
+			xlab <- paste(N, " ASSIGN", sep="")
 		}
 		if (scale) {
 			ylab <- "Distance"

@@ -48,6 +48,22 @@ results <- as.data.frame(sqlQuery(con, queryString)
 
 ###################################################################
 
+###	Establish variables for holding results table metadata.
+
+# NOTE: If there's an auto-incremented ID field, it should be marked and not included in analysis!
+# QUESTION: Someone should call str() on the results table.  When?  Who?
+
+# all column names: colnames(results)
+# number of columns: dim(results)[2]
+# number of rows: dim(results)[1]
+
+#QUESTION: Worry about duplicates now?  Tend to them with SQL before now?
+
+logCols <- 
+charCols <- 
+
+###################################################################
+
 ###	Create missingness visualization.  See missingness.R file for more information.
 
 missingDBviz <- function(x, ...){ 
@@ -104,3 +120,8 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 # This is the most basic version with no customization.
 ggpairs(results)
 
+###################################################################
+
+###	Calculate descriptive stats.
+
+# NOTE: need methods (literally and figuratively) to sort datatypes

@@ -101,6 +101,6 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 
 ###	Create correlation visualization.  See ggpairsTinkering.R file for more information.
 
+# This is the most basic version with no customization.
 ggpairs(results)
 
-# This is the most basic version with no customization.

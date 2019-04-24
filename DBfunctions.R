@@ -3,6 +3,7 @@
 describeTable <- function(con, table, columns) {
 #	odbcGetErrMsg(con)
 #	odbcGetInfo(con)
+	col_types <- sqlTypeInfo(con)
 	columns1 <- sqlColumns(con, table)
 #	columns2 <- sqlQuery(con,
 #		paste(

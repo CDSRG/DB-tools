@@ -35,19 +35,30 @@ setMethod("upsetDB", "data.frame",
 
 # upsetDB() method to handle DB connection + query input
 setMethod("upsetDB", "RODBC",
-	function(x, query=NULL, ...) {
-		if(!is.character(query)) {
-			warning("argument 'query' is not valid (must of type 'character')")
-			return()
-		}
-		results <- tryCatch(
-			sqlQuery(x, query, ...),
-			error = function(e) {
-				warning(paste("error evaluating query '", query, "' using provided DB connection", sep=""))
-				warning(e)
+	function(x, query=NULL, table=NULL, ...) {
+		if (!is.null(query)) {
+			if(!is.character(query)) {
+				warning("argument 'query' is not valid (must of type 'character')")
 				return()
 			}
-		)
+			results <- tryCatch(
+				sqlQuery(x, query, ...),
+				error = function(e) {
+					warning(paste("error evaluating query '", query, "' using provided DB connection", sep=""))
+					warning(e)
+					return()
+				}
+			)
+		} else if (!is.null(table)) {
+			if(!is.character(table)) {
+				warning("argument 'table' is not valid (must of type 'character')")
+				return()
+			}
+		}
+		else {
+			warning("must specify either argument 'query' or 'table'")
+			return()
+		}
 		upsetDBviz(results, ...)
 		return(results)
 	}

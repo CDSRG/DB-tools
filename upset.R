@@ -54,6 +54,14 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'table' is not valid (must of type 'character')")
 				return()
 			}
+			results <- tryCatch(
+				sqlQuery(x, paste("SELECT * FROM ", table), ...),
+				error = function(e) {
+					warning(paste("error querying table '", table, "' using provided DB connection", sep=""))
+					warning(e)
+					return()
+				}
+			)
 		}
 		else {
 			warning("must specify either argument 'query' or 'table'")

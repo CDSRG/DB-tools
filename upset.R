@@ -35,7 +35,7 @@ setMethod("upsetDB", "data.frame",
 
 # upsetDB() method to handle DB connection + query input
 setMethod("upsetDB", "RODBC",
-	function(x, query=NULL, table=NULL, use.columns=NULL, ...) {
+	function(x, query=NULL, table=NULL, use.columns=NULL, sample=NULL, ...) {
 		if (!is.null(query)) {
 			if(!is.character(query)) {
 				warning("argument 'query' is not valid (must of type 'character')")
@@ -77,8 +77,29 @@ setMethod("upsetDB", "RODBC",
 				warning(paste("no matching columns to query in table ", table, sep=""))
 				return()
 			}
+			if ((!is.null(sample)) & (length(sample) == 1) & (is.numeric(sample)) & (sample >= 1) & (sample < 100)) {
+				sample <- as.integer(sample)
+			}
+			else if (!is.null(sample)) {
+				warning("ignoring argument 'sample' (must be number between 1-99)")
+				sample <- FALSE
+			}
+			else {
+				sample <- FALSE
+			}
 			results <- tryCatch(
-				sqlQuery(x, paste("SELECT ", paste(use.columns, sep="", collapse=","), " FROM ", table, sep=""), ...),
+				sqlQuery(x, 
+					paste(
+						"SELECT ", 
+						paste(use.columns, sep="", collapse=","),
+						" FROM ", table, 
+						if (sample) {
+							paste("TABLESAMPLE ", sample, " PERCENT", sep="")
+						},
+						sep=""
+					),
+					...
+				),
 				error = function(e) {
 					warning(paste("error querying table '", table, "' using provided DB connection", sep=""))
 					warning(e)

@@ -35,7 +35,7 @@ setMethod("upsetDB", "data.frame",
 
 # upsetDB() method to handle DB connection + query input
 setMethod("upsetDB", "RODBC",
-	function(x, query=NULL, table=NULL, ...) {
+	function(x, query=NULL, table=NULL, use.columns=NULL, ...) {
 		if (!is.null(query)) {
 			if(!is.character(query)) {
 				warning("argument 'query' is not valid (must of type 'character')")
@@ -54,8 +54,31 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'table' is not valid (must of type 'character')")
 				return()
 			}
+			if ((is.null(use.columns)) || (any(use.columns == "*"))) {
+				use.columns <- "*"
+			}
+			else if (is.numeric(use.columns)) {
+				table.columns <- try(sqlColumns(x, table)[,"COLUMN_NAME"], silent=TRUE)
+				use.columns <- try(
+					table.columns[use.columns[which(
+						(use.columns >= 1) & (use.columns <= length(table.columns))
+					)]],
+					silent=TRUE
+				)
+			}
+			else if (all(is.na(use.columns))) {
+				warning(paste("cannot query NA columns in table ", table, sep=""))
+				return()
+			}
+			else {
+				use.columns <- try(intersect(use.columns, sqlColumns(x, table)[,"COLUMN_NAME"]), silent=TRUE)
+			}
+			if (length(use.columns) < 1) {
+				warning(paste("no matching columns to query in table ", table, sep=""))
+				return()
+			}
 			results <- tryCatch(
-				sqlQuery(x, paste("SELECT * FROM ", table), ...),
+				sqlQuery(x, paste("SELECT ", paste(use.columns, sep="", collapse=","), " FROM ", table, sep=""), ...),
 				error = function(e) {
 					warning(paste("error querying table '", table, "' using provided DB connection", sep=""))
 					warning(e)
@@ -81,7 +104,7 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 		warning("cannot visualize upset plot for empty data")
 		return()
 	}
-	if ((is.null(use.columns)) || (any(use.columns == "*")) {
+	if ((is.null(use.columns)) || (any(use.columns == "*"))) {
 		cols <- 1:ncols
 	}
 	else if (all(is.na(use.columns))) {

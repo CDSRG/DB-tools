@@ -36,13 +36,32 @@ setMethod("upsetDB", "data.frame",
 # upsetDB() method to handle DB connection + query input
 setMethod("upsetDB", "RODBC",
 	function(x, query=NULL, table=NULL, use.columns=NULL, sample=NULL, ...) {
+		if ((!is.null(sample)) & (length(sample) == 1) & (is.numeric(sample)) & (sample >= 0.01) & (sample < 1)) {
+			sample <- as.integer(sample*100)
+		}
+		else if (!is.null(sample)) {
+			warning("ignoring argument 'sample' (must be number between 0.01-0.99 [i.e. 1-99%])")
+			sample <- FALSE
+		}
+		else {
+			sample <- FALSE
+		}
 		if (!is.null(query)) {
 			if(!is.character(query)) {
 				warning("argument 'query' is not valid (must of type 'character')")
 				return()
 			}
 			results <- tryCatch(
-				sqlQuery(x, query, ...),
+				sqlQuery(x, 
+					paste(
+						query,
+						if (sample) {
+							paste(" TABLESAMPLE ", sample, " PERCENT", sep="")
+						},
+						sep=""				
+					),
+					...
+				),
 				error = function(e) {
 					warning(paste("error evaluating query '", query, "' using provided DB connection", sep=""))
 					warning(e)
@@ -77,16 +96,6 @@ setMethod("upsetDB", "RODBC",
 				warning(paste("no matching columns to query in table ", table, sep=""))
 				return()
 			}
-			if ((!is.null(sample)) & (length(sample) == 1) & (is.numeric(sample)) & (sample >= 0.01) & (sample < 1)) {
-				sample <- as.integer(sample*100)
-			}
-			else if (!is.null(sample)) {
-				warning("ignoring argument 'sample' (must be number between 0.01-0.99 [i.e. 1-99%])")
-				sample <- FALSE
-			}
-			else {
-				sample <- FALSE
-			}
 			results <- tryCatch(
 				sqlQuery(x, 
 					paste(
@@ -94,7 +103,7 @@ setMethod("upsetDB", "RODBC",
 						paste(use.columns, sep="", collapse=","),
 						" FROM ", table, 
 						if (sample) {
-							paste("TABLESAMPLE ", sample, " PERCENT", sep="")
+							paste(" TABLESAMPLE ", sample, " PERCENT", sep="")
 						},
 						sep=""
 					),

@@ -51,17 +51,11 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'query' is not valid (must of type 'character')")
 				return()
 			}
+			if (sample) {
+				query <- paste(query, " TABLESAMPLE ", sample, " PERCENT", sep="")
+			}
 			results <- tryCatch(
-				sqlQuery(x, 
-					paste(
-						query,
-						if (sample) {
-							paste(" TABLESAMPLE ", sample, " PERCENT", sep="")
-						},
-						sep=""				
-					),
-					...
-				),
+				sqlQuery(x, query, ...),
 				error = function(e) {
 					warning(paste("error evaluating query '", query, "' using provided DB connection", sep=""))
 					warning(e)

@@ -77,11 +77,11 @@ setMethod("upsetDB", "RODBC",
 				warning(paste("no matching columns to query in table ", table, sep=""))
 				return()
 			}
-			if ((!is.null(sample)) & (length(sample) == 1) & (is.numeric(sample)) & (sample >= 1) & (sample < 100)) {
-				sample <- as.integer(sample)
+			if ((!is.null(sample)) & (length(sample) == 1) & (is.numeric(sample)) & (sample >= 0.01) & (sample < 1)) {
+				sample <- as.integer(sample*100)
 			}
 			else if (!is.null(sample)) {
-				warning("ignoring argument 'sample' (must be number between 1-99)")
+				warning("ignoring argument 'sample' (must be number between 0.01-0.99 [i.e. 1-99%])")
 				sample <- FALSE
 			}
 			else {

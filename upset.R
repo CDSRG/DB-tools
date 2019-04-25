@@ -81,11 +81,15 @@ upsetDBviz <- function(data, pdf=NULL, width=NA, height=NA, nsets=NA, mode=NULL,
 		warning("cannot visualize upset plot for empty data")
 		return()
 	}
-	if (is.null(use.columns)) {
+	if ((is.null(use.columns)) || (any(use.columns == "*")) {
 		cols <- 1:ncols
 	}
+	else if (all(is.na(use.columns))) {
+		warning("cannot visualize upset plot for empty data (NA data in argument 'use.columns')")
+		return()
+	}
 	else {
-		cols <- use.columns	
+		cols <- use.columns[which(!is.na(use.columns))]
 	}
 	mode <- match.arg(mode, choices=c("presence"))
 	if (mode == "presence") {

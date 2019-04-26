@@ -36,12 +36,14 @@ setMethod("upsetDB", "data.frame",
 # upsetDB() method to handle DB connection + query input
 setMethod("upsetDB", "RODBC",
 	function(x, query=NULL, table=NULL, use.columns=NULL, sample=NULL, ...) {
-		if ((!is.null(sample)) & (length(sample) == 1) & (is.numeric(sample)) & (sample >= 0.01) & (sample < 1)) {
-			sample <- as.integer(sample*100)
-		}
-		else if (!is.null(sample)) {
-			warning("ignoring argument 'sample' (must be number between 0.01-0.99 [i.e. 1-99%])")
-			sample <- FALSE
+		if (!is.null(sample)) {
+			if ((length(sample) != 1) || (is.na(sample)) || (!is.numeric(sample)) || (sample < 0.01) || (sample >= 1)) {
+				warning("ignoring argument 'sample' (must be number between 0.01-0.99 [i.e. 1-99%])")
+				sample <- FALSE			
+			}
+			else {
+				sample <- as.integer(sample*100)
+			}
 		}
 		else {
 			sample <- FALSE

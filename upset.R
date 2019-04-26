@@ -57,15 +57,46 @@ setMethod("upsetDB", "RODBC",
 				query <- paste(query, " TABLESAMPLE (", sample, " PERCENT)", sep="")
 			}
 			results <- tryCatch(
-				sqlQuery(x, query, ...),
+				sqlQuery(x, 
+					paste(query, if (sample) {
+						paste(" TABLESAMPLE (", sample, " PERCENT)", sep="")
+					}, sep=""),
+					...
+				),
 				error = function(e) {
-					warning(paste("error evaluating query '", query, "' using provided DB connection", sep=""))
+					warning(paste(
+						"error evaluating query '", query,
+						if (sample) {
+							paste(" TABLESAMPLE (", sample, " PERCENT)", sep="")
+						},
+						"' using provided DB connection", sep=""
+					))
 					warning(e)
 					return()
 				}
 			)
-			# if results returns NADA because of tablesample error, can try rerunning without the sampling and then subselect results in R based on random select
-			# this would involve test/check here and then rerunning of SQL statement to get query without tablesample
+			if (sample & (length(results) <= 1)) {
+				results <- tryCatch(
+					sqlQuery(x, query, ...),
+					error = function(e) {
+						warning("error evaluating query '", query, "' using provided DB connection", sep="")
+						warning(e)
+						return()
+					}
+				)
+				if (length(results) <= 1) {
+					warning("query '", query, "' returned no actionable results")
+					return(results)
+				}
+				nrows <- dim(results)[1]
+				if (nrows >= 2) {
+					results <- results[sample(nrows, size=floor(nrows*sample)),]
+					if (dim(results)[1] < 2) {
+						warning("query '", query, "' returned no actionable results after sampling")
+						return(results)
+					}
+				}
+			}
 		} else if (!is.null(table)) {
 			if(!is.character(table)) {
 				warning("argument 'table' is not valid (must be of type 'character')")
@@ -83,7 +114,7 @@ setMethod("upsetDB", "RODBC",
 					)
 				) == "BASE TABLE",
 				error = function(e) {
-					warning(paste("table '", table, "' is not a BASE TABLE", sep=""))
+					warning("table '", table, "' is not a BASE TABLE")
 					warning(e)
 					return(FALSE)
 				}
@@ -101,14 +132,14 @@ setMethod("upsetDB", "RODBC",
 				)
 			}
 			else if (all(is.na(use.columns))) {
-				warning(paste("cannot query NA columns in table ", table, sep=""))
+				warning("cannot query NA columns in table ", table)
 				return()
 			}
 			else {
 				use.columns <- try(intersect(use.columns, sqlColumns(x, table)[,"COLUMN_NAME"]), silent=TRUE)
 			}
 			if (length(use.columns) < 1) {
-				warning(paste("no matching columns to query in table ", table, sep=""))
+				warning("no matching columns to query in table ", table)
 				return()
 			}
 			results <- tryCatch(
@@ -128,7 +159,7 @@ setMethod("upsetDB", "RODBC",
 					...
 				),
 				error = function(e) {
-					warning(paste("error querying table '", table, "' using provided DB connection", sep=""))
+					warning("error querying table '", table, "' using provided DB connection")
 					warning(e)
 					return()
 				}

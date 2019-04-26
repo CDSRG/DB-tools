@@ -52,7 +52,7 @@ setMethod("upsetDB", "RODBC",
 				return()
 			}
 			if (sample) {
-				query <- paste(query, " TABLESAMPLE ", sample, " PERCENT", sep="")
+				query <- paste(query, " TABLESAMPLE (", sample, " PERCENT)", sep="")
 			}
 			results <- tryCatch(
 				sqlQuery(x, query, ...),
@@ -62,11 +62,26 @@ setMethod("upsetDB", "RODBC",
 					return()
 				}
 			)
+			# if results returns NADA because of tablesample error, can try rerunning without the sampling and then subselect results in R based on random select
+			# this would involve test/check here and then rerunning of SQL statement to get query without tablesample
 		} else if (!is.null(table)) {
 			if(!is.character(table)) {
 				warning("argument 'table' is not valid (must of type 'character')")
 				return()
 			}
+			base.table <- tryCatch(
+				sqlQuery(x, 
+					paste(
+						"SELECT TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=N'",
+						table, "'", sep=""
+					)
+				) == "BASE TABLE",
+				error = function(e) {
+					warning(paste("table '", table, "' is not a BASE TABLE", sep=""))
+					warning(e)
+					return(FALSE)
+				}
+			)
 			if ((is.null(use.columns)) || (any(use.columns == "*"))) {
 				use.columns <- "*"
 			}
@@ -96,8 +111,11 @@ setMethod("upsetDB", "RODBC",
 						"SELECT ", 
 						paste(use.columns, sep="", collapse=","),
 						" FROM ", table, 
-						if (sample) {
-							paste(" TABLESAMPLE ", sample, " PERCENT", sep="")
+						if (sample & base.table) {
+							paste(" TABLESAMPLE (", sample, " PERCENT)", sep="")
+						} else if (sample) {
+							# ALTERNATIVE METHOD HERE FOR SELECTING RANDOM ROWS FROM 'VIEW' TABLES
+							# e.g. see https://www.brentozar.com/archive/2018/03/get-random-row-large-table/
 						},
 						sep=""
 					),

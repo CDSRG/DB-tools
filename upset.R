@@ -68,7 +68,11 @@ setMethod("upsetDB", "RODBC",
 			# this would involve test/check here and then rerunning of SQL statement to get query without tablesample
 		} else if (!is.null(table)) {
 			if(!is.character(table)) {
-				warning("argument 'table' is not valid (must of type 'character')")
+				warning("argument 'table' is not valid (must be of type 'character')")
+				return()
+			}
+			if (length(table) != 1) {
+				warning("argument 'table' must specify a single table")
 				return()
 			}
 			base.table <- tryCatch(

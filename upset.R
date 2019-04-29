@@ -1,3 +1,4 @@
+# Load +/- install RODBC package
 if (!requireNamespace("RODBC", partial=TRUE, quietly = TRUE)) {
 	warning("installing missing package 'RODBC'")
 	install.packages("RODBC", quiet=TRUE)
@@ -5,6 +6,8 @@ if (!requireNamespace("RODBC", partial=TRUE, quietly = TRUE)) {
 if (!isNamespaceLoaded("RODBC")) {
 	require("RODBC")
 }
+
+# Load +/- install UpSetR package
 if (!requireNamespace("UpSetR", partial=TRUE, quietly = TRUE)) {
 	warning("installing missing package 'UpSetR'")
 	install.packages("UpSetR", quiet=TRUE)
@@ -51,6 +54,15 @@ setMethod("upsetDB", "data.frame",
 # upsetDB() method to handle DB connection + query input
 setMethod("upsetDB", "RODBC",
 	function(x, query=NULL, table=NULL, use.columns=NULL, sample=NULL, ...) {
+		# test database connection and clear error log
+		tryCatch(
+			odbcClearError(x),
+			error=function(e) {
+				warning(e)
+				return()
+			}
+		)
+		# ensure argument 'sample' is number between 0.01-0.99 (%)
 		if (!is.null(sample)) {
 			if ((length(sample) != 1) || (is.na(sample)) || (!is.numeric(sample)) || (sample < 0.01) || (sample >= 1)) {
 				warning("ignoring argument 'sample' (must be number between 0.01-0.99 [i.e. 1-99%])")
@@ -63,6 +75,7 @@ setMethod("upsetDB", "RODBC",
 		else {
 			sample <- FALSE
 		}
+		# perform SQL query with specified input
 		if (!is.null(query)) {
 			if(!is.character(query)) {
 				warning("argument 'query' is not valid (must of type 'character')")
@@ -72,48 +85,38 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'query' must specify a single SQL query")
 				return()
 			}
-			results <- tryCatch(
-				sqlQuery(x, 
+			if (odbcQuery(x,
 					paste(query, if (sample) {
 						paste(" TABLESAMPLE (", sample, " PERCENT)", sep="")
-					}, sep=""),
-					...
-				),
-				error = function(e) {
-					warning(paste(
-						"error evaluating query '", query,
-						if (sample) {
-							paste(" TABLESAMPLE (", sample, " PERCENT)", sep="")
-						},
-						"' using provided DB connection", sep=""
-					))
-					warning(e)
-					return()
-				}
-			)
-			# results are actually length 2 in this case and of type character!!
-			if (sample & (length(results) <= 1)) {
-				results <- tryCatch(
-					sqlQuery(x, query, ...),
-					error = function(e) {
-						warning("error evaluating query '", query, "' using provided DB connection", sep="")
-						warning(e)
+					}, sep="")
+			) < 0) {
+				if (sample) {
+					odbcClearError(x)
+					if (odbcQuery(x, query) < 0) {
+						warning("error evaluating query '", query, "' using provided DB connection")
+						warning(odbcGetErrMsg(x))
 						return()
 					}
-				)
-				if (length(results) <= 1) {
-					warning("query '", query, "' returned no actionable results")
-					return(results)
-				}
-				nrows <- dim(results)[1]
-				if (nrows >= 2) {
-					results <- results[sample(nrows, size=floor(nrows*sample/100)),]
-					if (dim(results)[1] < 2) {
-						warning("query '", query, "' returned no actionable results after sampling")
-						return(results)
+					results <- getSqlResults(x, as.is=TRUE)
+					nrows <- dim(results)[1]
+					if (nrows >= 2) {
+						results <- results[sample(nrows, size=floor(nrows*sample/100)),]
+						if (dim(results)[1] < 2) {
+							warning("query '", query, "' returned no actionable results after sampling")
+							return(results)
+						}
 					}
 				}
+				else {
+					warning("error evaluating query '", query, "' using provided DB connection")
+					warning(odbcGetErrMsg(x))
+					return()
+				}
 			}
+			else {
+				results <- sqlGetResults(x, as.is=TRUE)
+			}
+		# perform SQL query of a specified table
 		} else if (!is.null(table)) {
 			if(!is.character(table)) {
 				warning("argument 'table' is not valid (must be of type 'character')")
@@ -123,20 +126,16 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'table' must specify a single table")
 				return()
 			}
-			# table name should be full field e.g. ORD_THompson.Src.XXXX --> need to strip all the []s and .s to get TABLE_NAME to match in INFORMATION_SCHEMA
-			base.table <- tryCatch(
-				sqlQuery(x, 
+			if (odbcQuery(x,
 					paste(
 						"SELECT TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=N'",
 						table, "'", sep=""
 					)
-				) == "BASE TABLE",
-				error = function(e) {
-					warning("table '", table, "' is not a BASE TABLE")
-					warning(e)
-					return(FALSE)
-				}
-			)
+			) < 0) {
+				warning(odbcGetErrMsg(x))
+				return()
+			}
+			base.table <- sqlGetResults(x) == "BASE TABLE"
 			if ((is.null(use.columns)) || (any(use.columns == "*"))) {
 				use.columns <- "*"
 			}
@@ -160,29 +159,26 @@ setMethod("upsetDB", "RODBC",
 				warning("no matching columns to query in table ", table)
 				return()
 			}
-			results <- tryCatch(
-				sqlQuery(x, 
-					paste(
-						"SELECT ", 
-						paste(use.columns, sep="", collapse=","),
-						" FROM ", table, 
-						if (sample & base.table) {
-							paste(" TABLESAMPLE (", sample, " PERCENT)", sep="")
-						} else if (sample) {
-							# ALTERNATIVE METHOD HERE FOR SELECTING RANDOM ROWS FROM 'VIEW' TABLES
-							# e.g. see https://www.brentozar.com/archive/2018/03/get-random-row-large-table/
-							# or just do the select and then afterwards do the sample (like query section above)
-						},
-						sep=""
-					),
-					...
-				),
-				error = function(e) {
-					warning("error querying table '", table, "' using provided DB connection")
-					warning(e)
-					return()
-				}
-			)
+			if (odbcQuery(x,
+				paste(
+					"SELECT ", 
+					paste(use.columns, sep="", collapse=","),
+					" FROM ", table, 
+					if (sample & base.table) {
+						paste(" TABLESAMPLE (", sample, " PERCENT)", sep="")
+					} else if (sample) {
+						# ALTERNATIVE METHOD HERE FOR SELECTING RANDOM ROWS FROM 'VIEW' TABLES
+						# e.g. see https://www.brentozar.com/archive/2018/03/get-random-row-large-table/
+						# or just do the select and then afterwards do the sample (like query section above)
+					},
+					sep=""
+				)
+			) < 0) {
+				warning("error querying table '", table, "' using provided DB connection")
+				warning(odbcGetErrMsg(x))
+				return()
+			}
+			results <- sqlGetResults(x, as.is=TRUE)
 		}
 		else {
 			warning("must specify either argument 'query' or 'table'")

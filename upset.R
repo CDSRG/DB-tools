@@ -1,3 +1,18 @@
+if (!requireNamespace("RODBC", partial=TRUE, quietly = TRUE)) {
+	warning("installing missing package 'RODBC'")
+	install.packages("RODBC", quiet=TRUE)
+}
+if (!isNamespaceLoaded("RODBC")) {
+	require("RODBC")
+}
+if (!requireNamespace("UpSetR", partial=TRUE, quietly = TRUE)) {
+	warning("installing missing package 'UpSetR'")
+	install.packages("UpSetR", quiet=TRUE)
+}
+if (!isNamespaceLoaded("UpSetR")) {
+	require("UpSetR")
+}
+
 # Define generic upsetDB() function
 upsetDB <- function (x, ...) {
 	UseMethod("upsetDB", x)
@@ -53,8 +68,9 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'query' is not valid (must of type 'character')")
 				return()
 			}
-			if (sample) {
-				query <- paste(query, " TABLESAMPLE (", sample, " PERCENT)", sep="")
+			if (length(query) != 1) {
+				warning("argument 'query' must specify a single SQL query")
+				return()
 			}
 			results <- tryCatch(
 				sqlQuery(x, 
@@ -75,6 +91,7 @@ setMethod("upsetDB", "RODBC",
 					return()
 				}
 			)
+			# results are actually length 2 in this case and of type character!!
 			if (sample & (length(results) <= 1)) {
 				results <- tryCatch(
 					sqlQuery(x, query, ...),
@@ -90,7 +107,7 @@ setMethod("upsetDB", "RODBC",
 				}
 				nrows <- dim(results)[1]
 				if (nrows >= 2) {
-					results <- results[sample(nrows, size=floor(nrows*sample)),]
+					results <- results[sample(nrows, size=floor(nrows*sample/100)),]
 					if (dim(results)[1] < 2) {
 						warning("query '", query, "' returned no actionable results after sampling")
 						return(results)
@@ -106,6 +123,7 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'table' must specify a single table")
 				return()
 			}
+			# table name should be full field e.g. ORD_THompson.Src.XXXX --> need to strip all the []s and .s to get TABLE_NAME to match in INFORMATION_SCHEMA
 			base.table <- tryCatch(
 				sqlQuery(x, 
 					paste(
@@ -153,6 +171,7 @@ setMethod("upsetDB", "RODBC",
 						} else if (sample) {
 							# ALTERNATIVE METHOD HERE FOR SELECTING RANDOM ROWS FROM 'VIEW' TABLES
 							# e.g. see https://www.brentozar.com/archive/2018/03/get-random-row-large-table/
+							# or just do the select and then afterwards do the sample (like query section above)
 						},
 						sep=""
 					),

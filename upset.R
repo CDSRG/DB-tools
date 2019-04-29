@@ -85,11 +85,13 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'query' must specify a single SQL query")
 				return()
 			}
+			# initiate query WITH table sampling - successful?
 			if (odbcQuery(x,
 					paste(query, if (sample) {
 						paste(" TABLESAMPLE (", sample, " PERCENT)", sep="")
 					}, sep="")
 			) < 0) {
+				# if sampling error -> try full query and sample after return of full results
 				if (sample) {
 					odbcClearError(x)
 					if (odbcQuery(x, query) < 0) {
@@ -107,12 +109,14 @@ setMethod("upsetDB", "RODBC",
 						}
 					}
 				}
+				# otherwise it's a query error -> return warnings and exit
 				else {
 					warning("error evaluating query '", query, "' using provided DB connection")
 					warning(odbcGetErrMsg(x))
 					return()
 				}
 			}
+			# successful query -> get results
 			else {
 				results <- sqlGetResults(x, as.is=TRUE)
 			}
@@ -126,6 +130,7 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'table' must specify a single table")
 				return()
 			}
+			# test table existence and whether it is a 'BASE TABLE' (which can be tablesampled)
 			if (odbcQuery(x,
 					paste(
 						"SELECT TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=N'",
@@ -136,6 +141,7 @@ setMethod("upsetDB", "RODBC",
 				return()
 			}
 			base.table <- sqlGetResults(x) == "BASE TABLE"
+			# process 'use.columns' arg to match within table constraints
 			if ((is.null(use.columns)) || (any(use.columns == "*"))) {
 				use.columns <- "*"
 			}
@@ -159,6 +165,7 @@ setMethod("upsetDB", "RODBC",
 				warning("no matching columns to query in table ", table)
 				return()
 			}
+			# run query on table - successful?
 			if (odbcQuery(x,
 				paste(
 					"SELECT ", 
@@ -184,6 +191,7 @@ setMethod("upsetDB", "RODBC",
 			warning("must specify either argument 'query' or 'table'")
 			return()
 		}
+		# visualization for results
 		upsetDBviz(results, ...)
 		return(results)
 	}

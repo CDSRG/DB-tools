@@ -130,9 +130,9 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'table' must specify a single table")
 				return()
 			}
+			# test table existence and whether it is a 'BASE TABLE' (which can be tablesampled)
 			table_alias <- unlist(strsplit(gsub("([][])","",table),"[.]"))
 			table_alias <- table_alias[length(table_alias)]
-			# test table existence and whether it is a 'BASE TABLE' (which can be tablesampled)
 			if (odbcQuery(x,
 					paste(
 						"SELECT TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=N'",
@@ -142,7 +142,17 @@ setMethod("upsetDB", "RODBC",
 				warning(odbcGetErrMsg(x))
 				return()
 			}
-			base.table <- sqlGetResults(x) == "BASE TABLE"
+			base.table <- tryCatch(
+				if (sqlGetResults(x) == "BASE TABLE") {
+					return(TRUE)
+				}
+				else {
+					return(FALSE)
+				},
+				error=function(e) {
+					return(FALSE)
+				}
+			)
 			# process 'use.columns' arg to match within table constraints
 			if ((is.null(use.columns)) || (any(use.columns == "*"))) {
 				use.columns <- "*"

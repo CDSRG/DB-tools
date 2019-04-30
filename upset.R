@@ -130,11 +130,13 @@ setMethod("upsetDB", "RODBC",
 				warning("argument 'table' must specify a single table")
 				return()
 			}
+			table_alias <- unlist(strsplit(gsub("([][])","",table),"[.]"))
+			table_alias <- table_alias[length(table_alias)]
 			# test table existence and whether it is a 'BASE TABLE' (which can be tablesampled)
 			if (odbcQuery(x,
 					paste(
 						"SELECT TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=N'",
-						table, "'", sep=""
+						table_alias, "'", sep=""
 					)
 			) < 0) {
 				warning(odbcGetErrMsg(x))
@@ -146,7 +148,7 @@ setMethod("upsetDB", "RODBC",
 				use.columns <- "*"
 			}
 			else if (is.numeric(use.columns)) {
-				table.columns <- try(sqlColumns(x, table)[,"COLUMN_NAME"], silent=TRUE)
+				table.columns <- try(sqlColumns(x, table_alias)[,"COLUMN_NAME"], silent=TRUE)
 				use.columns <- try(
 					table.columns[use.columns[which(
 						(use.columns >= 1) & (use.columns <= length(table.columns))
@@ -159,7 +161,7 @@ setMethod("upsetDB", "RODBC",
 				return()
 			}
 			else {
-				use.columns <- try(intersect(use.columns, sqlColumns(x, table)[,"COLUMN_NAME"]), silent=TRUE)
+				use.columns <- try(intersect(use.columns, sqlColumns(x, table_alias)[,"COLUMN_NAME"]), silent=TRUE)
 			}
 			if (length(use.columns) < 1) {
 				warning("no matching columns to query in table ", table)

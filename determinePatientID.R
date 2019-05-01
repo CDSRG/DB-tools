@@ -81,7 +81,7 @@ buildSearchString <- function(targets = NULL, match=NULL, field="COLUMN_NAME") {
  		)
 	}
 	if (like.len >= 1) {
-		queryString.like <- paste(field, " LIKE '%", targets, "%'", collapse=" OR ", sep="")
+		queryString.like <- paste(field, " LIKE '%", targets[matches.like], "%'", collapse=" OR ", sep="")
 	}
 	if (exclude.len == 1) {
 		queryString.exclude <- paste(field, " != '", targets[matches.exclude], "'", sep="")

@@ -11,24 +11,36 @@ if (!isNamespaceLoaded("RODBC")) {
 }
 
 
-buildSearchString <- function(targets = NULL, match="exact") {
+buildSearchString <- function(targets = NULL, match=NULL) {
 	if (is.null(targets)) {
+		warning("argument 'targets' must specify one or more column name(s)")
 		return("")
 	}
 	else if (all(is.na(targets))) {
+		warning("argument 'targets' must specify one or more column name(s)")
 		return("")
 	}
 	else if (!is.character(targets)) {
 		warning("argument 'targets' must specify one or more column name(s)")
 		return("")
 	}
+	else if (length(targets) < 1) {
+		warning("argument 'targets' must specify one or more column name(s)")
+		return("")
+	}
 	if (is.null(match)) {
+		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
 		return("")
 	}
 	else if (all(is.na(match))) {
+		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
 		return("")
 	}
 	else if (!is.character(match)) {
+		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
+		return("")
+	}
+	else if (length(match) < 1) {
 		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
 		return("")
 	}

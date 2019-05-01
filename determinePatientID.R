@@ -85,6 +85,6 @@ findTargets <- function(con, targetQuery, ...) {
 	return(results)
 }
 
-# identifiers should be in this list: SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'CohortCrosswalk'
+
 #add error checking all through
 #over-functionalized? functions should call each other?

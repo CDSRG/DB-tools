@@ -19,14 +19,22 @@ buildSearchString <- function(targets = NULL, match=c("exact", "like", "exclude"
 	matches.exclude <- which(match == "exclude")
 	matches.like <- which(match == "like")
 	matches.notlike <- which(match == "notlike")
+	queryString.exact <- ""
 	if (length(matches.exact) == 1) {
-		# COLUMN_NAME == 'targets[matches.exact]'
+		queryString.exact <- paste("COLUMN_NAME == '", targets[matches.exact], "'", sep="")
 	}
 	else if (length(matches.exact) > 1) {
-		# COLUMN_NAME IN ('target1','target2',...)
+		queryString.exact <- paste("COLUMN_NAME IN (",
+			paste("'", targets[matches.exact], "'", collapse=",", sep=""),
+			")", sep=""
+		)
 	}
 
 	if (length(matches.like) >= 1) {
+		queryString.like <- paste("COLUMN_NAME LIKE (",
+			paste("'", targets[matches.exact], "'", collapse=",", sep=""),
+			")", sep=""
+		)
 		# COLUMN_NAME LIKE 'target1' OR COLUMN_NAME LIKE 'target2', ...
 	}
 	if (length(matches.exclude) == 1) {

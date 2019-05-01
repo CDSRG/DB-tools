@@ -10,6 +10,7 @@ if (!isNamespaceLoaded("RODBC")) {
 	require("RODBC")
 }
 
+# 
 buildSearchString <- function(target1 = NULL, target2 = NULL, target3 = NULL, target4 = NULL, target5 = NULL) {
 	if (target1) {
 		searchString <- paste("(COLUMN_NAME LIKE '", target1, "'", sep = 0)
@@ -54,7 +55,7 @@ restrictDataType <- function(type1 = NULL, type2, = NULL, type3 = NULL) {
 
 
 buildTargetQuery <- function(x = searchString, y = restrictString, dbName = NULL) {
-	targetQuery <- paste("SELECT TABLE_NAME, COLUMN_NAME FROM ", dbName, ".INFORMATION_SCHEMA.COLUMNS WHERE ", searchString, restrictString, sep = 0)
+	targetQuery <- paste("SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE ", searchString, restrictString, sep = 0)
 	return(targetQuery)
 }
 

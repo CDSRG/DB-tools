@@ -59,6 +59,11 @@ buildTargetQuery <- function(x = searchString, y = restrictString) {
 }
 
 
+
+
+
+
+
 findTargets <- function(con, targetQuery, ...) {
 	results <- as.data.frame(sqlQuery(con, query))
 	return(results)

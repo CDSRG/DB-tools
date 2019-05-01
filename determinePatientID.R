@@ -81,7 +81,8 @@ buildSearchString <- function(targets = NULL, match="exact") {
 			targets[matches.notlike], "%'", collapse=" OR ", sep=""
 		)
 	}
-	searchString <- paste(if ((exact.len > 0) & (like.len > 0)) { "(" },
+	searchString <- paste("WHERE ",
+		if ((exact.len > 0) & (like.len > 0)) { "(" },
 		if (exact.len > 0) { paste("(", queryString.exact, ")", sep="") },
 		if ((exact.len > 0) & (like.len > 0)) { " OR " },
 		if (like.len > 0) { paste("(", queryString.like, ")", sep="") },
@@ -107,7 +108,7 @@ restrictDataType <- function(types = NULL) {
 
 
 buildTargetQuery <- function(x = searchString, y = restrictString) {
-	targetQuery <- paste("SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE ", searchString, restrictString, sep = 0)
+	targetQuery <- paste("SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS ", searchString, restrictString, sep = 0)
 	return(targetQuery)
 }
 

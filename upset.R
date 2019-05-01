@@ -53,7 +53,7 @@ setMethod("upsetDB", "data.frame",
 
 # upsetDB() method to handle DB connection + query input
 setMethod("upsetDB", "RODBC",
-	function(x, query=NULL, table=NULL, use.columns=NULL, sample=NULL, ...) {
+	function(x, query=NULL, table=NULL, use.columns=NULL, sample=NULL, verbose=TRUE, ...) {
 		# test database connection and clear error log
 		tryCatch(
 			odbcClearError(x),
@@ -86,6 +86,9 @@ setMethod("upsetDB", "RODBC",
 				return()
 			}
 			# initiate query WITH table sampling - successful?
+			if (verbose) {
+				print("Attempting to query DB... ")
+			}
 			if (odbcQuery(x,
 					paste(query, if (sample) {
 						paste(" TABLESAMPLE (", sample, " PERCENT)", sep="")
@@ -94,10 +97,19 @@ setMethod("upsetDB", "RODBC",
 				# if sampling error -> try full query and sample after return of full results
 				if (sample) {
 					odbcClearError(x)
+					if (verbose) {
+						print("ERROR\nAttempting modified query... ")
+					}
 					if (odbcQuery(x, query) < 0) {
+						if (verbose) {
+							print("ERROR\n")
+						}
 						warning("error evaluating query '", query, "' using provided DB connection")
 						warning(odbcGetErrMsg(x))
 						return()
+					}
+					if (verbose) {
+						print("SUCCESS\n")
 					}
 					results <- getSqlResults(x, as.is=TRUE)
 					nrows <- dim(results)[1]
@@ -111,6 +123,9 @@ setMethod("upsetDB", "RODBC",
 				}
 				# otherwise it's a query error -> return warnings and exit
 				else {
+					if (verbose) {
+						print("ERROR\n")
+					}
 					warning("error evaluating query '", query, "' using provided DB connection")
 					warning(odbcGetErrMsg(x))
 					return()
@@ -118,6 +133,9 @@ setMethod("upsetDB", "RODBC",
 			}
 			# successful query -> get results
 			else {
+				if (verbose) {
+					print("SUCCESS\n")
+				}
 				results <- sqlGetResults(x, as.is=TRUE)
 			}
 		# perform SQL query of a specified table
@@ -178,6 +196,9 @@ setMethod("upsetDB", "RODBC",
 				return()
 			}
 			# run query on table - successful?
+			if (verbose) {
+				print("Attempting to query table in DB... ")
+			}
 			if (odbcQuery(x,
 				paste(
 					"SELECT ", 
@@ -193,9 +214,15 @@ setMethod("upsetDB", "RODBC",
 					sep=""
 				)
 			) < 0) {
+				if (verbose) {
+					print("ERROR\n")
+				}
 				warning("error querying table '", table, "' using provided DB connection")
 				warning(odbcGetErrMsg(x))
 				return()
+			}
+			if (verbose) {
+				print("SUCCESS\n")
 			}
 			results <- sqlGetResults(x, as.is=TRUE)
 		}
@@ -204,7 +231,13 @@ setMethod("upsetDB", "RODBC",
 			return()
 		}
 		# visualization for results
+		if (verbose) {
+			print("Generating upset plot visualization... ")
+		}
 		upsetDBviz(results, ...)
+		if (verbose) {
+			print("SUCCESS\n")
+		}
 		return(results)
 	}
 )

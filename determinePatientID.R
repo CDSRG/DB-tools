@@ -46,7 +46,8 @@ buildSearchString <- function(targets = NULL, match=c("exact", "like", "exclude"
 
 #possible to accept unknown number of parameters?
 
-restrictDataType <- function(type1 = NULL, type2, = NULL, type3 = NULL) {
+restrictDataType <- function(types = NULL) {
+	# AND DATA_TYPE IN ('type1','type2',...)
 	restrictString <- paste(" AND DATA_TYPE IN ('", type1, "'", sep = 0)
 	moreTypes <- c(type2, type3)
 	for (i in length(moreTypes)) {

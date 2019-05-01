@@ -112,9 +112,8 @@ findIdentifiers <- function(results, con, ...) {
 createOutputCols <- function(identifierColumns) {
 	outputCols <- vector()
 	for (i in 1:dim(identifierColumns)[1]) {
-	
-
-
+	colName <- paste(identifierColumns[i,1], ".", identifierColumns[i,2], sep="")
+	outputCols <- c(outputCols, colName)
 	}
 	return(outputCols)
 }

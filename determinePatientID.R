@@ -11,23 +11,8 @@ if (!isNamespaceLoaded("RODBC")) {
 }
 
 # 
-buildSearchString <- function(target1 = NULL, target2 = NULL, target3 = NULL, target4 = NULL, target5 = NULL) {
-	if (target1) {
-		searchString <- paste("(COLUMN_NAME LIKE '", target1, "'", sep = 0)
-	}
-	if (target2) {
-		searchString <- paste(searchString, " OR COLUMN_NAME LIKE '", target2, "'", sep = 0)
-	}
-	if (target3) {
-		searchString <- paste(searchString, " OR COLUMN_NAME LIKE '", target3, "'", sep = 0)
-	}
-	if (target4) {
-		searchString <- paste(searchString, " OR COLUMN_NAME LIKE '", target4, "'", sep = 0)
-	}
-	if (target5) {
-		searchString <- paste(searchString, " OR COLUMN_NAME LIKE '", target5, "'", sep = 0)
-	}
-	searchString <- paste(searchString, ")")
+buildSearchString <- function(targets = NULL) {
+	searchString <- paste("(COLUMN_NAME LIKE ", paste("'", targets, "'", collapse=" OR COLUMN_NAME LIKE ", sep=""), ")", sep="")
 	return(searchString)
 }
 buildSearchString <- function(target1 = NULL, target2 = NULL, target3 = NULL, target4 = NULL, target5 = NULL) {
@@ -54,7 +39,7 @@ restrictDataType <- function(type1 = NULL, type2, = NULL, type3 = NULL) {
 #same questions as above
 
 
-buildTargetQuery <- function(x = searchString, y = restrictString, dbName = NULL) {
+buildTargetQuery <- function(x = searchString, y = restrictString) {
 	targetQuery <- paste("SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE ", searchString, restrictString, sep = 0)
 	return(targetQuery)
 }

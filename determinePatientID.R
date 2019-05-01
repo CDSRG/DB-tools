@@ -11,10 +11,42 @@ if (!isNamespaceLoaded("RODBC")) {
 }
 
 
-buildSearchString <- function(targets = NULL, match=c("exact", "like", "exclude", "notlike")) {
-	# length(targets)==length(match) - or if length(targers)>1 and length(mathch)==1 -> then apply that same match type for all
-	#various error checking here :) for types fo values, etc., matches should only be one of exact, like, exclude
-
+buildSearchString <- function(targets = NULL, match="exact") {
+	if (is.null(targets)) {
+		return("")
+	}
+	else if (all(is.na(targets))) {
+		return("")
+	}
+	else if (!is.character(targets)) {
+		warning("argument 'targets' must specify one or more column name(s)")
+		return("")
+	}
+	if (is.null(match)) {
+		return("")
+	}
+	else if (all(is.na(match))) {
+		return("")
+	}
+	else if (!is.character(match)) {
+		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
+		return("")
+	}
+	if (any(!match %in% c("exact", "like", "exclude", "notlike"))) {
+		warning("ignoring unexpected value(s) of 'match': ", 
+			paste(match[which(!match %in% c("exact", "like", "exclude", "notlike"))], collapse=", ")
+		)
+		match <- match[which(match %in% c("exact", "like", "exclude", "notlike"))]
+	}
+	if (length(targets) != length(match)) {
+		if (length(match) == 1) {
+			match <- rep(match, length(targets))
+		}
+		else {
+			warning("lengths of arguments 'targets' and 'match' must be the same")
+			return("")
+		}
+	}
 	matches.exact <- which(match == "exact")
 	exact.len <- length(matches.exact)
 	matches.exclude <- which(match == "exclude")

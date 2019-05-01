@@ -48,15 +48,11 @@ buildSearchString <- function(targets = NULL, match=c("exact", "like", "exclude"
 
 restrictDataType <- function(types = NULL) {
 	# AND DATA_TYPE IN ('type1','type2',...)
-	restrictString <- paste(" AND DATA_TYPE IN ('", type1, "'", sep = 0)
-	moreTypes <- c(type2, type3)
-	for (i in length(moreTypes)) {
-		restrictString <- paste(restrictString, ", '", moreTypes[i], "'", sep = 0)
-	}
-	restrictString <- paste(restrictString, ")")
+
+	restrictString <- paste(" AND DATA_TYPE IN (", paste("'", types, "'", collapse=", ", sep=""), ")", sep = 0)
 	return(restrictString)
 }
-#same questions as above
+
 
 
 buildTargetQuery <- function(x = searchString, y = restrictString) {

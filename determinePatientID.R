@@ -20,15 +20,20 @@ buildSearchString <- function(targets = NULL, match=c("exact", "like", "exclude"
 	matches.like <- which(match == "like")
 	matches.notlike <- which(match == "notlike")
 	if (length(matches.exact) == 1) {
-		# COLUMN_NAME == 'targets[matches.exact]'
+		queryString.exact <- paste("COLUMN_NAME == '", targets[matches.exact], "'", sep="")
 	}
 	else if (length(matches.exact) > 1) {
-		# COLUMN_NAME IN ('target1','target2',...)
+		queryString.exact <- paste("COLUMN_NAME IN (",
+			paste("'", targets[matches.exact], "'", collapse=",", sep=""),
+ 			")", sep=""
+ 		)
+	}
+	else {
+		queryString.exact <- character(0)
 	}
 
 	if (length(matches.like) >= 1) {
 		queryString.like <- paste("COLUMN_NAME LIKE '%", targets, "%'", collapse=" OR ", sep="")
-		# COLUMN_NAME LIKE 'target1' OR COLUMN_NAME LIKE 'target2', ...
 	}
 	if (length(matches.exclude) == 1) {
 		# COLUMN_NAME !=target
@@ -37,7 +42,10 @@ buildSearchString <- function(targets = NULL, match=c("exact", "like", "exclude"
 		# COLUMN_NAME NOT IN ('targe1','target2',...)
 	}
 	if (length(matches.notlike) >= 1) {
-		# COLUMN_NAME NOT LIKE target1 AND COLUMN_NAME NOT LIKE target2, ....
+		queryString.notlike <- paste("COLUMN_NAME NOT LIKE '%", targets, "%'", collapse=" OR ", sep="")
+	}
+	else {
+		queryString.notlike <- character(0)
 	}
 	# ((exact) OR (like)) AND ((exclude) OR (notlike))
 
@@ -58,11 +66,6 @@ buildTargetQuery <- function(x = searchString, y = restrictString) {
 	targetQuery <- paste("SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE ", searchString, restrictString, sep = 0)
 	return(targetQuery)
 }
-
-
-
-
-
 
 
 findTargets <- function(con, targetQuery, ...) {

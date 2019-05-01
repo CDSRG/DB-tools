@@ -161,12 +161,30 @@ findIdentifiers <- function(results, con, ...) {
 	}
 }
 
+# two data frames for final output?  one holding target values and one holding identifier values?
 # create column names for final output
-createOutputCols <- function(identifierColumns) {
-	outputCols <- vector()
+# below gives identifier table.column names
+createOutputColsID <- function(identifierColumns) {
+	outputColsID <- vector()
 	for (i in 1:dim(identifierColumns)[1]) {
 	colName <- paste(identifierColumns[i,1], ".", identifierColumns[i,2], sep="")
-	outputCols <- c(outputCols, colName)
+	outputColsID <- c(outputColsID, colName)
 	}
-	return(outputCols)
+	return(outputColsID)
 }
+
+# below gives target table.column names
+createOutputColsTarget <- function(results) {
+	outputColsTarget <- vector()
+	for (i in 1:dim(results)[1]) {
+	colName <- paste(results[i,1], ".", results[i,2], sep="")
+	outputColsTarget <- c(outputColsTarget, colName)
+	}
+	return(outputColsTarget)
+}
+
+
+# make data frame with an  independent ID as one column and outputColumns as the other columns -- this will hold identifier values
+# repeat with results -- this will hold target values
+# match identifier column and target column using identifierColumns and results (RENAME RESULTS) - link by table name
+# match output dataframes by independent IDs

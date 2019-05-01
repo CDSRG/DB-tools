@@ -24,7 +24,11 @@ buildSearchString <- function(targets = NULL, match=NULL, field="COLUMN_NAME") {
 		warning("argument 'targets' must specify one or more column name(s)")
 		return("")
 	}
-	else if (length(targets) < 1) {
+	else if (any(grepl("'", targets))) {
+		warning("value(s) in 'targets' cannot contain quotes: ", targets[grepl("'", targets)])
+		targets <- targets[!grepl("'", targets)]
+	}
+	if (length(targets) < 1) {
 		warning("argument 'targets' must specify one or more column name(s)")
 		return("")
 	}
@@ -40,15 +44,15 @@ buildSearchString <- function(targets = NULL, match=NULL, field="COLUMN_NAME") {
 		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
 		return("")
 	}
-	else if (length(match) < 1) {
-		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
-		return("")
-	}
 	if (any(!match %in% c("exact", "like", "exclude", "notlike"))) {
 		warning("ignoring unexpected value(s) of 'match': ", 
 			paste(match[which(!match %in% c("exact", "like", "exclude", "notlike"))], collapse=", ")
 		)
 		match <- match[which(match %in% c("exact", "like", "exclude", "notlike"))]
+	}
+	if (length(match) < 1) {
+		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
+		return("")
 	}
 	if (length(targets) != length(match)) {
 		if (length(match) == 1) {

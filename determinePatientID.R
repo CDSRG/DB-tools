@@ -11,7 +11,7 @@ if (!isNamespaceLoaded("RODBC")) {
 }
 
 
-buildSearchString <- function(targets = NULL, match=NULL) {
+buildSearchString <- function(targets = NULL, match=NULL, field="COLUMN_NAME") {
 	if (is.null(targets)) {
 		warning("argument 'targets' must specify one or more column name(s)")
 		return("")
@@ -59,6 +59,10 @@ buildSearchString <- function(targets = NULL, match=NULL) {
 			return("")
 		}
 	}
+	if ((!is.character(field)) || (length(field) != 1)) {
+		warning("argument 'field' must specify a single column name to search")
+		return("")
+	} 
 	matches.exact <- which(match == "exact")
 	exact.len <- length(matches.exact)
 	matches.exclude <- which(match == "exclude")
@@ -68,28 +72,28 @@ buildSearchString <- function(targets = NULL, match=NULL) {
 	matches.notlike <- which(match == "notlike")
 	notlike.len <- length(matches.notlike)
 	if (exact.len == 1) {
-		queryString.exact <- paste("COLUMN_NAME == '", targets[matches.exact], "'", sep="")
+		queryString.exact <- paste(field, " == '", targets[matches.exact], "'", sep="")
 	}
 	else if (exact.len > 1) {
-		queryString.exact <- paste("COLUMN_NAME IN (",
+		queryString.exact <- paste(field, " IN (",
 			paste("'", targets[matches.exact], "'", collapse=",", sep=""),
  			")", sep=""
  		)
 	}
 	if (like.len >= 1) {
-		queryString.like <- paste("COLUMN_NAME LIKE '%", targets, "%'", collapse=" OR ", sep="")
+		queryString.like <- paste(field, " LIKE '%", targets, "%'", collapse=" OR ", sep="")
 	}
 	if (exclude.len == 1) {
-		queryString.exlude <- paste("COLUMN_NAME != '", targets[matches.exclude], "'", sep="")
+		queryString.exlude <- paste(field, " != '", targets[matches.exclude], "'", sep="")
 	}
 	else if (exclude.len > 1) {
-		queryString.exclude <- paste("COLUMN_NAME NOT IN (",
+		queryString.exclude <- paste(field, " NOT IN (",
 			paste("'", targets[matches.exclude], "'", collapse=",", sep=""),
  			")", sep=""
  		)
 	}
 	if (notlike.len >= 1) {
-		queryString.notlike <- paste("COLUMN_NAME NOT LIKE '%", 
+		queryString.notlike <- paste(field, " NOT LIKE '%", 
 			targets[matches.notlike], "%'", collapse=" OR ", sep=""
 		)
 	}

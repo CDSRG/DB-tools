@@ -32,14 +32,8 @@ buildSearchString <- function(targets = NULL, match=c("exact", "like", "exclude"
  			")", sep=""
  		)
 	}
-	else {
-		queryString.exact <- character(0)
-	}
 	if (like.len >= 1) {
 		queryString.like <- paste("COLUMN_NAME LIKE '%", targets, "%'", collapse=" OR ", sep="")
-	}
-	else {
-		queryString.like <- character(0)
 	}
 	if (exclude.len == 1) {
 		queryString.exlude <- paste("COLUMN_NAME != '", targets[matches.exclude], "'", sep="")
@@ -50,16 +44,10 @@ buildSearchString <- function(targets = NULL, match=c("exact", "like", "exclude"
  			")", sep=""
  		)
 	}
-	else {
-		queryString.exclude <- character(0)
-	}
 	if (notlike.len >= 1) {
 		queryString.notlike <- paste("COLUMN_NAME NOT LIKE '%", 
 			targets[matches.notlike], "%'", collapse=" OR ", sep=""
 		)
-	}
-	else {
-		queryString.notlike <- character(0)
 	}
 	searchString <- paste(if ((exact.len > 0) & (like.len > 0)) { "(" },
 		if (exact.len > 0) { paste("(", queryString.exact, ")", sep="") },

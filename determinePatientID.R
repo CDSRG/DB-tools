@@ -86,5 +86,35 @@ findTargets <- function(con, targetQuery, ...) {
 }
 
 
-#add error checking all through
-#over-functionalized? functions should call each other?
+
+findIdentifiers <- function(results, con, ...) {
+
+	tableNames <- unique(results[,1])
+
+	identifierColumns <- data.frame(matrix(ncol=0,nrow=0))
+
+	for (i in 1:length(tableNames)) {
+
+		idQuery <- paste("SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE COLUMN_NAME IN (SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+		WHERE TABLE_NAME = 'CohortCrosswalk') AND TABLE_NAME = '",
+		tableNames[i], "'", sep = "")
+
+	idColumns <- sqlQuery(con, idQuery)
+
+	identifierColumns <- rbind(identifierColumns, idColumns)
+
+	return(identifierColumns)
+	}
+}
+
+# create column names for final output
+createOutputCols <- function(identifierColumns) {
+	outputCols <- vector()
+	for (i in 1:dim(identifierColumns)[1]) {
+	
+
+
+	}
+	return(outputCols)
+}

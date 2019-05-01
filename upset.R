@@ -4,7 +4,7 @@ if (!requireNamespace("RODBC", partial=TRUE, quietly = TRUE)) {
 	install.packages("RODBC", quiet=TRUE)
 }
 if (!isNamespaceLoaded("RODBC")) {
-	require("RODBC")
+	suppressPackageStartupMessages(require("RODBC"))
 }
 
 # Load +/- install UpSetR package
@@ -13,7 +13,7 @@ if (!requireNamespace("UpSetR", partial=TRUE, quietly = TRUE)) {
 	install.packages("UpSetR", quiet=TRUE)
 }
 if (!isNamespaceLoaded("UpSetR")) {
-	require("UpSetR")
+	suppressPackageStartupMessages(require("UpSetR"))
 }
 
 # Define generic upsetDB() function
@@ -52,7 +52,7 @@ setMethod("upsetDB", "data.frame",
 )
 
 # upsetDB() method to handle DB connection + query input
-setMethod("upsetDB", "RODBC",
+suppressMessages(setMethod("upsetDB", "RODBC",
 	function(x, query=NULL, table=NULL, use.columns=NULL, sample=NULL, verbose=TRUE, ...) {
 		# test database connection and clear error log
 		tryCatch(
@@ -240,7 +240,7 @@ setMethod("upsetDB", "RODBC",
 		}
 		return(results)
 	}
-)
+))
 
 
 # DEFINE upsetDBviz() FUNCTION to visualize upset plot of columns

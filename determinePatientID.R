@@ -16,32 +16,52 @@ buildSearchString <- function(targets = NULL, match=c("exact", "like", "exclude"
 	#various error checking here :) for types fo values, etc., matches should only be one of exact, like, exclude
 
 	matches.exact <- which(match == "exact")
+	exact.len <- length(matches.exact)
 	matches.exclude <- which(match == "exclude")
+	exclude.len <- length(matches.exclude)
 	matches.like <- which(match == "like")
+	like.len <- length(matches.like)
 	matches.notlike <- which(match == "notlike")
-	if (length(matches.exact) == 1) {
-		# COLUMN_NAME == 'targets[matches.exact]'
+	notlike.len <- length(matches.notlike)
+	if (exact.len == 1) {
+		queryString.exact <- paste("COLUMN_NAME == '", targets[matches.exact], "'", sep="")
 	}
-	else if (length(matches.exact) > 1) {
-		# COLUMN_NAME IN ('target1','target2',...)
+	else if (exact.len > 1) {
+		queryString.exact <- paste("COLUMN_NAME IN (",
+			paste("'", targets[matches.exact], "'", collapse=",", sep=""),
+ 			")", sep=""
+ 		)
 	}
-
-	if (length(matches.like) >= 1) {
+	if (like.len >= 1) {
 		queryString.like <- paste("COLUMN_NAME LIKE '%", targets, "%'", collapse=" OR ", sep="")
-		# COLUMN_NAME LIKE 'target1' OR COLUMN_NAME LIKE 'target2', ...
 	}
-	if (length(matches.exclude) == 1) {
-		# COLUMN_NAME !=target
+	if (exclude.len == 1) {
+		queryString.exlude <- paste("COLUMN_NAME != '", targets[matches.exclude], "'", sep="")
 	}
-	else if (length(matches.exclude) > 1) {
-		# COLUMN_NAME NOT IN ('targe1','target2',...)
+	else if (exclude.len > 1) {
+		queryString.exclude <- paste("COLUMN_NAME NOT IN (",
+			paste("'", targets[matches.exclude], "'", collapse=",", sep=""),
+ 			")", sep=""
+ 		)
 	}
-	if (length(matches.notlike) >= 1) {
-		# COLUMN_NAME NOT LIKE target1 AND COLUMN_NAME NOT LIKE target2, ....
+	if (notlike.len >= 1) {
+		queryString.notlike <- paste("COLUMN_NAME NOT LIKE '%", 
+			targets[matches.notlike], "%'", collapse=" OR ", sep=""
+		)
 	}
-	# ((exact) OR (like)) AND ((exclude) OR (notlike))
-
-	searchString <- paste("(COLUMN_NAME LIKE ", paste("'", targets, "'", collapse=" OR COLUMN_NAME LIKE ", sep=""), ")", sep="")
+	searchString <- paste(if ((exact.len > 0) & (like.len > 0)) { "(" },
+		if (exact.len > 0) { paste("(", queryString.exact, ")", sep="") },
+		if ((exact.len > 0) & (like.len > 0)) { " OR " },
+		if (like.len > 0) { paste("(", queryString.like, ")", sep="") },
+		if ((exact.len > 0) & (like.len > 0)) { ")" },
+		if ((exact.len+like.len > 0) & (exclude.len+notlike.len > 0)) { " AND " },
+		if ((exclude.len > 0) & (notlike.len > 0)) { "(" },
+		if (exclude.len > 0) { paste("(", queryString.exclude, ")", sep="") },
+		if ((exclude.len > 0) & (notlike.len > 0)) { " OR " },
+		if (notlike.len > 0) { paste("(", queryString.notlike, ")", sep="") },
+		if ((exclude.len > 0) & (notlike.len > 0)) { ")" },
+		sep=""
+	)
 	return(searchString)
 }
 
@@ -58,11 +78,6 @@ buildTargetQuery <- function(x = searchString, y = restrictString) {
 	targetQuery <- paste("SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE ", searchString, restrictString, sep = 0)
 	return(targetQuery)
 }
-
-
-
-
-
 
 
 findTargets <- function(con, targetQuery, ...) {

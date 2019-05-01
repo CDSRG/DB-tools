@@ -31,10 +31,7 @@ buildSearchString <- function(targets = NULL, match=c("exact", "like", "exclude"
 	}
 
 	if (length(matches.like) >= 1) {
-		queryString.like <- paste("COLUMN_NAME LIKE (",
-			paste("'", targets[matches.exact], "'", collapse=",", sep=""),
-			")", sep=""
-		)
+		queryString.like <- paste("COLUMN_NAME LIKE ", paste("COLUMN_NAME LIKE '", targets, "'", collapse=" OR ", sep=""), ")", sep="")
 		# COLUMN_NAME LIKE 'target1' OR COLUMN_NAME LIKE 'target2', ...
 	}
 	if (length(matches.exclude) == 1) {

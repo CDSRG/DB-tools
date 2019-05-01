@@ -144,10 +144,10 @@ setMethod("upsetDB", "RODBC",
 			}
 			base.table <- tryCatch(
 				if (sqlGetResults(x) == "BASE TABLE") {
-					return(TRUE)
+					TRUE
 				}
 				else {
-					return(FALSE)
+					FALSE
 				},
 				error=function(e) {
 					return(FALSE)

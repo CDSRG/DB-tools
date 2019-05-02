@@ -157,7 +157,20 @@ findIdentifiers <- function(results, con, ...) {
 	}
 }
 
+
+
+
 # two data frames for final output?  one holding target values and one holding identifier values?
+# or one data frame for final output with target and identifier values?
+# using two is more complicated for ensuring values stay matched by entity
+# drawbacks to using one? can subset it for analysis?
+# make data frame with an  independent ID as one column and outputColumns as the other columns -- this will hold identifier values
+# repeat with results -- this will hold target values
+# match identifier column and target column using identifierColumns and results (RENAME RESULTS) - link by table name
+# match output dataframes by independent IDs
+
+
+
 # create column names for final output
 # below gives identifier table.column names
 createOutputColsID <- function(identifierColumns) {
@@ -179,8 +192,5 @@ createOutputColsTarget <- function(results) {
 	return(outputColsTarget)
 }
 
+#
 
-# make data frame with an  independent ID as one column and outputColumns as the other columns -- this will hold identifier values
-# repeat with results -- this will hold target values
-# match identifier column and target column using identifierColumns and results (RENAME RESULTS) - link by table name
-# match output dataframes by independent IDs

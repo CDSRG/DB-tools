@@ -22,23 +22,22 @@ counts <- function(text) {
 		return(term.counts)
 	}
 	positions <- 1:length(text)
-	print(positions)
 	for (i in names(terms)) {
 		pos.i <- which(text==i)
 		if (length(pos.i) < 1) next
-		terms[i] <- positions[pos.i]
+		terms[i] <- list(positions[pos.i])
 	}
 	for (i in 1:length(compound.terms)) {
 		if (length(compound.terms[[i]]) == 1) {
-			term.counts[i, 1] <- length(terms[compound.terms[[i]]])
+			term.counts[i, 1] <- length(which(!is.na(unlist(terms[compound.terms[[i]]]))))
 		}
 		else {
-			a <- as.numeric(terms[compound.terms[[i]][1]])
-			b <- as.numeric(terms[compound.terms[[i]][2]])
-			term.counts[i, 1] <- length(which(b-a == 1))
+			a <- as.numeric(unlist(terms[compound.terms[[i]][1]]))
+			b <- as.numeric(unlist(terms[compound.terms[[i]][2]]))
+			if(length(a)>0 & length(b)>0) {
+				term.counts[i, 1] <- length(which(b-a == 1))
+			}
 		}
 	}
 	return(term.counts)
 } 
-print(terms)
-print(compound.terms)

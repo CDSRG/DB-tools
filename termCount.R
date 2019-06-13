@@ -35,7 +35,8 @@ counts <- function(text) {
 			a <- as.numeric(unlist(terms[compound.terms[[i]][1]]))
 			b <- as.numeric(unlist(terms[compound.terms[[i]][2]]))
 			if(length(a)>0 & length(b)>0) {
-				term.counts[i, 1] <- length(which(b-a == 1))
+				match()
+				term.counts[i, 1] <- length(which(!is.na(match(b,a+1))))
 			}
 		}
 	}

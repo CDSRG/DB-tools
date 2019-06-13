@@ -15,8 +15,17 @@ for (i in 1:(dim(features)[1])) {
 	}
 }
 
-counts <- function(text) {
-	text <- unlist(strsplit(text, " "))
+counts <- function(text, sep=" ") {
+#counts <- function(text, terms, sep=" ") {
+#	terms.list <- list()
+#	for (term in as.character(terms)) {
+#		term.components <- unlist(strsplit(terms, sep))
+#		for (term.component in term.components) {
+#			terms.list[term.component] <- NA
+#		}
+#	}
+#
+	text <- unlist(strsplit(text, sep))
 	term.counts <- data.frame(rep(0, dim(features)[1]), row.names=features[,1])
 	if (length(text) < 1) {
 		return(term.counts)
@@ -35,7 +44,6 @@ counts <- function(text) {
 			a <- as.numeric(unlist(terms[compound.terms[[i]][1]]))
 			b <- as.numeric(unlist(terms[compound.terms[[i]][2]]))
 			if(length(a)>0 & length(b)>0) {
-				match()
 				term.counts[i, 1] <- length(which(!is.na(match(b,a+1))))
 			}
 		}

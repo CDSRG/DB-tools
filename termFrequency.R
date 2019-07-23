@@ -69,6 +69,10 @@ setMethod("tfDB", signature(x = "RODBC"),
 				return()
 			}
 		)
+		if (length(identifiers) < 1) {
+			warning("no matching identifier columns to query in table ", table)
+			return()
+		}
 		# perform SQL query with specified input
 		if (!is.null(query)) {
 			if(!is.character(query)) {
@@ -83,6 +87,43 @@ setMethod("tfDB", signature(x = "RODBC"),
 				warning("error evaluating query '", query, "' using provided DB connection")
 				warning(odbcGetErrMsg(x))
 				return()
+			}
+			results <- getSqlResults(x, as.is=TRUE)
+			if (dim(results)[1] < 1) {
+				warning("query '", query, "' returned no actionable results")
+				return(results)
+			}
+			if (dim(results)[2] < 2) {
+				warning("query '", query, "' returned fewer than 2 columns")
+				return(results)
+			}
+			if (!is.null(identifiers)) {
+				doc_id <- which(names(results) %in% identifiers)]
+				if (length(doc_id) < 1) {
+					warning("no matching document identifier column(s)")
+					return()
+				} else if (length(doc_id) > 1) {
+					warning("multiple matches to document identifier column(s), using first entry only: ", doc_id[1])
+					doc_id <- doc_id[1]
+				}
+				names(results)[doc_id] <- "doc_id"
+			}
+			else {
+				names(results)[1] <- "doc_id"
+			}
+			if (!is.null(use.columns)) {
+				text <- which(names(results) %in% use.columns)]
+				if (length(text) < 1) {
+					warning("no matching text column(s)")
+					return()
+				} else if (length(text) > 1) {
+					warning("multiple matches to document text column(s), using first entry only: ", text[1])
+					text <- text[1]
+				}
+				names(results)[text] <- "text"
+			}
+			else {
+				names(results)[2] <- "text"
 			}
 		# perform SQL query of a specified table
 		} else if (!is.null(table)) {
@@ -117,7 +158,7 @@ setMethod("tfDB", signature(x = "RODBC"),
 				use.columns <- try(intersect(use.columns, sqlColumns(x, table_alias)[,"COLUMN_NAME"]), silent=TRUE)
 			}
 			if (length(use.columns) < 1) {
-				warning("no matching columns to query in table ", table)
+				warning("no matching text columns to query in table ", table)
 				return()
 			}
 			# process 'identifiers' arg to match within table constraints
@@ -125,7 +166,16 @@ setMethod("tfDB", signature(x = "RODBC"),
 			if (odbcQuery(x,
 				paste(
 					"SELECT ", 
-					paste(c(identifiers, use.columns), sep="", collapse=","),
+					if (length(identifiers) > 1) {
+						paste("CONCAT_WS(' ',", paste(identifiers, sep="", collapse=","), ") AS doc_id,", sep="")
+					} else {
+						paste(identifiers, " AS doc_id,", sep="")
+					},
+					if (length(use.columns) > 1) {
+						paste("CONCAT_WS(' ',", paste(use.columns, sep="", collapse=","), ") AS text", sep="")
+					} else {
+						paste(use.columns, " AS text", sep="")
+					},
 					" FROM ", table,
 					sep=""
 				)
@@ -134,33 +184,24 @@ setMethod("tfDB", signature(x = "RODBC"),
 				warning(odbcGetErrMsg(x))
 				return()
 			}
+			results <- getSqlResults(x, as.is=TRUE)
 		}
 		else {
 			warning("must specify either argument 'query' or 'table'")
 			return()
 		}
-		results <- getSqlResults(x, as.is=TRUE)
-
-		if (dim(results)[1] < 1) {
-			warning("query '", query, "' returned no actionable results")
-			return(results)
-		}
-
-#		results <- sqlQuery(x, query)
-		names(results) <- c("doc_id", "text")
-		x <- x[,c("doc_id", "text")]
-		textsCorpus <- SimpleCorpus(DataframeSource(x), control = list(language = "en"))
+		results <- SimpleCorpus(DataframeSource(results), control = list(language = "en"))
 		if (is.null(terms)) {
-			textsDTM <- DocumentTermMatrix(textsCorpus)
+			textsDTM <- DocumentTermMatrix(results)
 		}
 		else {
-			textsDTM <- DocumentTermMatrix(textsCorpus, control = list(
+			textsDTM <- DocumentTermMatrix(results, control = list(
 					dictionary = terms, 
 					wordLengths=range(nchar(terms), na.rm=TRUE)
 				)
 			)			
 		}
-		return(list(textsCorpus=textsCorpus, textsDTM=textsDTM))
+		return(list(textsCorpus=results, textsDTM=textsDTM))
 	}
 )
 

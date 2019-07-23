@@ -1,7 +1,7 @@
 # Load +/- install RODBC package
 if (!requireNamespace("RODBC", partial=TRUE, quietly = TRUE)) {
-	warning("installing missing package 'RODBC'")
-	install.packages("RODBC", quiet=TRUE)
+	message("installing missing package 'RODBC'")
+	suppressMessages(install.packages("RODBC", quiet=TRUE))
 }
 if (!isNamespaceLoaded("RODBC")) {
 	suppressPackageStartupMessages(require("RODBC"))
@@ -9,8 +9,8 @@ if (!isNamespaceLoaded("RODBC")) {
 
 # Load +/- install UpSetR package
 if (!requireNamespace("UpSetR", partial=TRUE, quietly = TRUE)) {
-	warning("installing missing package 'UpSetR'")
-	install.packages("UpSetR", quiet=TRUE)
+	message("installing missing package 'UpSetR'")
+	suppressMessages(install.packages("UpSetR", quiet=TRUE))
 }
 if (!isNamespaceLoaded("UpSetR")) {
 	suppressPackageStartupMessages(require("UpSetR"))

@@ -9,7 +9,8 @@
 ### SELECT TABLE_NAME, COLUMN_NAME 
 ### FROM [database].INFORMATION_SCEHMA.COLUMNS
 ### WHERE COLUMN_NAME LIKE '%ICD%'
-### Manual inspection of each table is required to ascertain its usefulness.
+### Manual inspection of each table is required to ascertain its usefulness
+### and identify relevant columns!
 ### This script creates dataframes of the relevant columns in each ICD table
 ### to aid in the creation of queries against these tables.  In addition to the
 ### noted columns, all tables include PatientSID and Sta3n.
@@ -74,17 +75,21 @@ for (sid in 1:nrow(targetTables)) {
 }
 rm(sid)
 
+joinQuery_9 <- c()
+joinQuery_10 <- c()
+
+
 for (sid in 1:nrow(joinTargetTables)) {
-	joinQuery_9 <- paste("SELECT a.ICD9SID, a.PatientSID, a.Sta3n, DATEPART(YEAR, ", joinTargetTables[sid,5], "), 
+	joinQuery_9[sid] <- paste("SELECT a.ICD9SID, a.PatientSID, a.Sta3n, DATEPART(YEAR, ", joinTargetTables[sid,5], "), 
 				DATEPART(MONTH, ", joinTargetTables[sid,5], "), DATEPART(DAY, ", joinTargetTables[sid,5], "), '", 
 				joinTargetTables[sid,1], "', ", joinTargetTables[sid,2], " FROM ORD_Conlin_201708011D.Src.",
 				joinTargetTables[sid,1], " a INNER JOIN ORD_Conlin_201708011D.Src.", joinTargetTables[sid,3], " b ON a.", 
-				joinTargetTables[sid,4], " = b.", joinTargetTables[sid,4], " WHERE ICD9SID IN (", sep = "")
-	joinQuery_10 <- paste("SELECT a.ICD10SID, a.PatientSID, a.Sta3n, DATEPART(YEAR, ", joinTargetTables[sid,5], "), 
+				joinTargetTables[sid,4], " = b.", joinTargetTables[sid,4], sep = "")
+	joinQuery_10[sid] <- paste("SELECT a.ICD10SID, a.PatientSID, a.Sta3n, DATEPART(YEAR, ", joinTargetTables[sid,5], "), 
 				DATEPART(MONTH, ", joinTargetTables[sid,5], "), DATEPART(DAY, ", joinTargetTables[sid,5], "), '", 
 				joinTargetTables[sid,1], "', ", joinTargetTables[sid,2], " FROM ORD_Conlin_201708011D.Src.",
 				joinTargetTables[sid,1], " a INNER JOIN ORD_Conlin_201708011D.Src.", joinTargetTables[sid,3], " b ON a.", 
-				joinTargetTables[sid,4], " = b.", joinTargetTables[sid,4], " WHERE ICD10SID IN (", sep = "")
+				joinTargetTables[sid,4], " = b.", joinTargetTables[sid,4], sep = "")
 }
 rm(sid)
 query_9 <- c(query_9, joinQuery_9)

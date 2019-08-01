@@ -30,7 +30,7 @@ table11 <- c("Outpat_VSkinTestDiagnosis", "VSkinTestDiagnosisSID", "VisitDateTim
 table12 <- c("Outpat_WorkloadVDiagnosis", "VDiagnosisSID", "VisitDateTime")
 table13 <- c("Outpat_WorkloadVProcedureDiagnosis", "VProcedureDiagnosisSID", "VisitDateTime")
 table14 <- c("Rad_RadiologyNuclearMedicineOrder", "RadiologyNuclearMedicineOrderSID", "RequestEnteredDateTime")
-targetTables <- rbind(table1, table2, table3, table4, table5, table6, table7, table8, table9, table10, table11, table12, table13)
+targetTables <- rbind(table1, table2, table3, table4, table5, table6, table7, table8, table9, table10, table11, table12, table13, table14)
 colnames(targetTables) <- c("TableName", "TableSID", "DateField")
 rm(table1)
 rm(table2)
@@ -58,32 +58,37 @@ rm(joinTable2)
 
 ### create queries
 ### RIGHT NOW THESE LOOP ONLY CREATE THE QUERIES!!!!!
-### THEY NEITHER SAVE NOR USE THEM!!!!!
 ### See calcCharlson.R for attempts at using these queries.
 
+query_9 <- c()
+query_10 <- c()
+
 for (sid in 1:nrow(targetTables)) {
-	query_9 <- paste("SELECT ICD9SID, PatientSID, Sta3n, DATEPART(YEAR, ", targetTables[i,3], "), DATEPART(MONTH, ", targetTables[i,3], 
-				"), DATEPART(DAY, ", targetTables[i,3], "), '", targetTables[i,1], "', ", targetTables[i,2], " FROM ORD_Conlin_201708011D.Src.",
-				targetTables[i,1], sep = "")
-	query_10 <- paste("SELECT ICD10SID, PatientSID, Sta3n, DATEPART(YEAR, ", targetTables[i,3], "), DATEPART(MONTH, ", targetTables[i,3], 
-				"), DATEPART(DAY, ", targetTables[i,3], "), '", targetTables[i,1], "', ", targetTables[i,2], " FROM ORD_Conlin_201708011D.Src.",
-				targetTables[i,1], sep = "")
+	query_9[sid] <- paste("SELECT ICD9SID, PatientSID, Sta3n, DATEPART(YEAR, ", targetTables[sid,3], "), DATEPART(MONTH, ", 
+				targetTables[sid,3], "), DATEPART(DAY, ", targetTables[sid,3], "), '", targetTables[sid,1], "', ", 
+				targetTables[sid,2], " FROM ORD_Conlin_201708011D.Src.", targetTables[sid,1], sep = "")
+	query_10[sid] <- paste("SELECT ICD10SID, PatientSID, Sta3n, DATEPART(YEAR, ", targetTables[sid,3], "), DATEPART(MONTH, ", 
+				targetTables[sid,3], "), DATEPART(DAY, ", targetTables[sid,3], "), '", targetTables[sid,1], "', ", 
+				targetTables[sid,2], " FROM ORD_Conlin_201708011D.Src.", targetTables[sid,1], sep = "")
 }
 rm(sid)
-rm(query_9)
-rm(query_10)
 
 for (sid in 1:nrow(joinTargetTables)) {
-	query_9 <- paste("SELECT a.ICD9SID, a.PatientSID, a.Sta3n, DATEPART(YEAR, ", joinTargetTables[i,5], "), DATEPART(MONTH, ", joinTargetTables[i,5], 
-				"), DATEPART(DAY, ", joinTargetTables[i,5], "), '", joinTargetTables[i,1], "', ", joinTargetTables[i,2], " FROM ORD_Conlin_201708011D.Src.",
-				joinTargetTables[i,1], " a INNER JOIN ORD_Conlin_201708011D.Src.", joinTargetTables[i,3], " b ON a.", joinTargetTables[i,4], 
-				" = b.", joinTargetTables[i,4], " WHERE ICD9SID IN (", sep = "")
-	query_10 <- paste("SELECT a.ICD10SID, a.PatientSID, a.Sta3n, DATEPART(YEAR, ", joinTargetTables[i,5], "), DATEPART(MONTH, ", joinTargetTables[i,5], 
-				"), DATEPART(DAY, ", joinTargetTables[i,5], "), '", joinTargetTables[i,1], "', ", joinTargetTables[i,2], " FROM ORD_Conlin_201708011D.Src.",
-				joinTargetTables[i,1], " a INNER JOIN ORD_Conlin_201708011D.Src.", joinTargetTables[i,3], " b ON a.", joinTargetTables[i,4], 
-				" = b.", joinTargetTables[i,4], " WHERE ICD10SID IN (", sep = "")
+	joinQuery_9 <- paste("SELECT a.ICD9SID, a.PatientSID, a.Sta3n, DATEPART(YEAR, ", joinTargetTables[sid,5], "), 
+				DATEPART(MONTH, ", joinTargetTables[sid,5], "), DATEPART(DAY, ", joinTargetTables[sid,5], "), '", 
+				joinTargetTables[sid,1], "', ", joinTargetTables[sid,2], " FROM ORD_Conlin_201708011D.Src.",
+				joinTargetTables[sid,1], " a INNER JOIN ORD_Conlin_201708011D.Src.", joinTargetTables[sid,3], " b ON a.", 
+				joinTargetTables[sid,4], " = b.", joinTargetTables[sid,4], " WHERE ICD9SID IN (", sep = "")
+	joinQuery_10 <- paste("SELECT a.ICD10SID, a.PatientSID, a.Sta3n, DATEPART(YEAR, ", joinTargetTables[sid,5], "), 
+				DATEPART(MONTH, ", joinTargetTables[sid,5], "), DATEPART(DAY, ", joinTargetTables[sid,5], "), '", 
+				joinTargetTables[sid,1], "', ", joinTargetTables[sid,2], " FROM ORD_Conlin_201708011D.Src.",
+				joinTargetTables[sid,1], " a INNER JOIN ORD_Conlin_201708011D.Src.", joinTargetTables[sid,3], " b ON a.", 
+				joinTargetTables[sid,4], " = b.", joinTargetTables[sid,4], " WHERE ICD10SID IN (", sep = "")
 }
 rm(sid)
-rm(query_9)
-rm(query_10)
-
+query_9 <- c(query_9, joinQuery_9)
+query_10 <- c(query_10, joinQuery_10)
+rm(joinQuery_9)
+rm(joinQuery_10)
+rm(targetTables)
+rm(joinTargetTables)

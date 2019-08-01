@@ -6,7 +6,8 @@
 ### The purpose of this script is to facilitate collecting ICD code information
 ### from all potential sources in the CDW.  
 ### Possible tables are identified in SQL Server with the following query:
-### SELECT TABLE_NAME, COLUMN_NAME FROM [database].INFORMATION_SCEHMA.COLUMNS
+### SELECT TABLE_NAME, COLUMN_NAME 
+### FROM [database].INFORMATION_SCEHMA.COLUMNS
 ### WHERE COLUMN_NAME LIKE '%ICD%'
 ### Manual inspection of each table is required to ascertain its usefulness.
 ### This script creates dataframes of the relevant columns in each ICD table

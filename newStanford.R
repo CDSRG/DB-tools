@@ -124,13 +124,16 @@ query <- paste(query, WHEREclause, " ORDER BY EntryDateTime", sep = "")
 notes <- sqlQuery(con, query)
 colnames(notes) <- c("doc_id", "text", "interval")
 
-### create document term matrix for patient
+### check if results set is null
+### if not, create document term matrix for patient
 
-notesDTM <- notes[,1:2]
-notesDTM <- SimpleCorpus(DataframeSource(notesDTM), control = list(language = "en"))
-notesDTM <- DocumentTermMatrix(notesDTM, list(dictionary = terms))
-notesDTM <- as.data.frame(as.matrix(notesDTM))
-notesDTM <- notesDTM[c(terms)]
+if (!nrow(notes) == 0) {
+	notesDTM <- notes[,1:2]
+	notesDTM <- SimpleCorpus(DataframeSource(notesDTM), control = list(language = "en"))
+	notesDTM <- DocumentTermMatrix(notesDTM, list(dictionary = terms))
+	notesDTM <- as.data.frame(as.matrix(notesDTM))
+	notesDTM <- notesDTM[c(terms)]
+}
 
 ### merge data frames to replace date interval and remove document identifier
 

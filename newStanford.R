@@ -133,8 +133,6 @@ if (!nrow(notes) == 0) {
 	notesDTM <- DocumentTermMatrix(notesDTM, list(dictionary = terms))
 	notesDTM <- as.data.frame(as.matrix(notesDTM))
 	notesDTM <- notesDTM[c(terms)]
-}
-
 ### merge data frames to replace date interval and remove document identifier
 
 doc_id <- rownames(notesDTM)
@@ -151,6 +149,8 @@ thisPat <- cbind(patID, thisPat)
 ### save deidentified data to file
 
 write.table(thisPat, file = "P:/ORD_Thompson_201805044D/Celia/Radiation/Stanford/StanfordDTM.csv", append = TRUE, sep = ",", row.names = FALSE, col.names = TRUE)
+
+}
 
 ### save PatientICN to completed patients file
 

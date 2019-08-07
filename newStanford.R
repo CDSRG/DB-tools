@@ -40,6 +40,8 @@ con <- odbcDriverConnect(connection="driver={SQL Server};
 	database=ORD_Thompson_201805044D;
 	trusted_connection=TRUE")
 
+################## FROM THIS POINT UNTIL NOTED, SCRIPT SHOULD NOT BE RUN AGAIN. ###################################
+
 ### instantiate empty vector that will hold identifiers of patients with completed processing
 
 completedPats <- c()
@@ -52,8 +54,6 @@ query <- "SELECT * FROM ORD_Thompson_201805044D.Dflt.CJM_Stanford"
 cohort <- sqlQuery(con, query, as.is = FALSE, stringsAsFactors = FALSE)
 rm(query)
 cohort$DateRadiationStarted <- as.Date(cohort$DateRadiationStarted)
-
-################## FROM THIS POINT UNTIL NOTED, SCRIPT SHOULD NOT BE RUN AGAIN. ###################################
 
 ### create random 6 digit replacements for patient identifiers
 
@@ -81,7 +81,8 @@ completedPats <- as.vector(completedPats[,1])
 
 ### generate list of patients to process
 
-cohortList <- as.vector(cohort$PatientICN)
+cohort <- read.csv(file = "P:/ORD_Thompson_201805044D/Celia/Radiation/Stanford/StanfordCohortKey.csv", header = TRUE, sep = ",")
+cohortList <- cohort$PatientICN
 
 ### remove completed patients from list still to be processed
 
@@ -97,65 +98,66 @@ terms <- as.character(terms)
 
 for (pat in 1:length(cohortList)) {
 
-patData <- cohort %>% filter(cohort$PatientICN == cohortList[pat])
+	patData <- cohort %>% filter(cohort$PatientICN == cohortList[pat])
 
 ### retrieve all PatientSID and Sta3n values for the PatientICN
 
-query <- paste("SELECT PatientSID, Sta3n FROM ORD_Thompson_201805044D.Src.CohortCrosswalk WHERE PatientICN = ", cohortList[pat], sep = "")
-SIDs <- sqlQuery(con, query)
-rm(query)
+	query <- paste("SELECT PatientSID, Sta3n FROM ORD_Thompson_201805044D.Src.CohortCrosswalk WHERE PatientICN = ", cohortList[pat], sep = "")
+	SIDs <- sqlQuery(con, query)
+	rm(query)
 
 ### build WHERE clause of query to retrieve all notes for the patient
 
-zeroDate <- patData$DateRadiationStarted
+	zeroDate <- patData$DateRadiationStarted
 
-WHEREclause <- paste(" WHERE ((PatientSID = ", SIDs[1,1], " AND Sta3n = ", SIDs[1,2], ")", sep = "")
-if (nrow(SIDs) > 1) {
-	for (sid in 2:nrow(SIDs)) {
-		WHEREclause <- paste(WHEREclause, " OR (PatientSID = ", SIDs[sid,1], " AND Sta3n = ", SIDs[sid,2], ")", sep = "")
+	WHEREclause <- paste(" WHERE ((PatientSID = ", SIDs[1,1], " AND Sta3n = ", SIDs[1,2], ")", sep = "")
+	if (nrow(SIDs) > 1) {
+		for (sid in 2:nrow(SIDs)) {
+			WHEREclause <- paste(WHEREclause, " OR (PatientSID = ", SIDs[sid,1], " AND Sta3n = ", SIDs[sid,2], ")", sep = "")
+		}
 	}
-}
-WHEREclause <- paste(WHEREclause, ") AND DATEDIFF(DAY, '", zeroDate, "', EntryDateTime) >= -366", sep = "")
+	WHEREclause <- paste(WHEREclause, ") AND DATEDIFF(DAY, '", zeroDate, "', EntryDateTime) >= -366", sep = "")
 
 ### retrieve all relevant notes for the patient
 
-query <- paste("SELECT TIUDocumentSID, ReportText, DATEDIFF(DAY, '", zeroDate, "', EntryDateTime) FROM ORD_Thompson_201805044D.Src.TIU_TIUDocument_8925", sep = "")
-query <- paste(query, WHEREclause, " ORDER BY EntryDateTime", sep = "")
-notes <- sqlQuery(con, query)
-colnames(notes) <- c("doc_id", "text", "interval")
+	query <- paste("SELECT TIUDocumentSID, ReportText, DATEDIFF(DAY, '", zeroDate, "', EntryDateTime) FROM ORD_Thompson_201805044D.Src.TIU_TIUDocument_8925", sep = "")
+	query <- paste(query, WHEREclause, " ORDER BY EntryDateTime", sep = "")
+	notes <- sqlQuery(con, query)
+	colnames(notes) <- c("doc_id", "text", "interval")
 
 ### check if results set is null
 ### if not, create document term matrix for patient
 
-if (!nrow(notes) == 0) {
-	notesDTM <- notes[,1:2]
-	notesDTM <- SimpleCorpus(DataframeSource(notesDTM), control = list(language = "en"))
-	notesDTM <- DocumentTermMatrix(notesDTM, list(dictionary = terms))
-	notesDTM <- as.data.frame(as.matrix(notesDTM))
-	notesDTM <- notesDTM[c(terms)]
+	if (!nrow(notes) == 0) {
+		notesDTM <- notes[,1:2]
+		notesDTM <- SimpleCorpus(DataframeSource(notesDTM), control = list(language = "en"))
+		notesDTM <- DocumentTermMatrix(notesDTM, list(dictionary = terms))
+		notesDTM <- as.data.frame(as.matrix(notesDTM))
+		notesDTM <- notesDTM[c(terms)]
+
 ### merge data frames to replace date interval and remove document identifier
 
-doc_id <- rownames(notesDTM)
-notesDTM <- cbind(notesDTM, doc_id)
-notes <- notes[,-2]
-thisPat <- merge(notes, notesDTM, by = "doc_id", all = TRUE, no.dups = FALSE)
-thisPat <- thisPat[,-1]
+	doc_id <- rownames(notesDTM)
+	notesDTM <- cbind(notesDTM, doc_id)
+	notes <- notes[,-2]
+	thisPat <- merge(notes, notesDTM, by = "doc_id", all = TRUE, no.dups = FALSE)
+	thisPat <- thisPat[,-1]
 
 ### add randomly generated patient identifier to each row
 
-patID <- patData$PatIDs
-thisPat <- cbind(patID, thisPat)
+	patID <- patData$PatIDs
+	thisPat <- cbind(patID, thisPat)
 
 ### save deidentified data to file
 
-write.table(thisPat, file = "P:/ORD_Thompson_201805044D/Celia/Radiation/Stanford/StanfordDTM.csv", append = TRUE, sep = ",", row.names = FALSE, col.names = TRUE)
+	write.table(thisPat, file = "P:/ORD_Thompson_201805044D/Celia/Radiation/Stanford/StanfordDTM.csv", append = TRUE, sep = ",", row.names = FALSE, col.names = TRUE)
 
-}
+	}
 
 ### save PatientICN to completed patients file
 
-ICN <- patData$PatientICN
-write.table(patData$PatientICN, file = "P:/ORD_Thompson_201805044D/Celia/Radiation/Stanford/StanfordCompleted.csv", append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE)
+	ICN <- patData$PatientICN
+	write.table(patData$PatientICN, file = "P:/ORD_Thompson_201805044D/Celia/Radiation/Stanford/StanfordCompleted.csv", append = TRUE, sep = ",", row.names = FALSE, col.names = FALSE)
 
 }
 

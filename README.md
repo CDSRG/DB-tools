@@ -9,10 +9,16 @@ The repository is organized into several directories and sub-directories as foll
   - `Visualization` - containing a collection of database visualization tools
   - `Analysis` - containing a collection of tools for subsequent data analysis
 
-## (`Querying`) Database querying tools 
+## `Querying`
 
-## (`Cleaning`) Database cleaning tools 
+## `Cleaning` 
 
-## (`Visualization`) Database visualization tools 
+## `Visualization` 
 
-## (`Analysis`) Data analysis tools 
+This folder contains the following data visualization tools:
+* `upset.R` - visualization to assess the table-level distribution of non-NULL values among different columns
+
+### `upset.R`
+description of upset.R code here
+
+## `Analysis` 

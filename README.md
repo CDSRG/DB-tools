@@ -9,10 +9,10 @@ The repository is organized into several directories and sub-directories as foll
   - `Visualization` - containing a collection of database visualization tools
   - `Analysis` - containing a collection of tools for subsequent data analysis
 
-## (`Scripts/Querying`) Database querying tools 
+## (`Querying`) Database querying tools 
 
-## (`Scripts/Cleaning`) Database cleaning tools 
+## (`Cleaning`) Database cleaning tools 
 
-## (`Scripts/Visualization`) Database visualization tools 
+## (`Visualization`) Database visualization tools 
 
-## (`Scripts/Analysis`) Data analysis tools 
+## (`Analysis`) Data analysis tools 

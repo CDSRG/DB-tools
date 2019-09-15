@@ -161,12 +161,7 @@ suppressMessages(setMethod("upsetDB", "RODBC",
 				return()
 			}
 			base.table <- tryCatch(
-				if (sqlGetResults(x) == "BASE TABLE") {
-					TRUE
-				}
-				else {
-					FALSE
-				},
+				(sqlGetResults(x) == "BASE TABLE"),
 				error=function(e) {
 					return(FALSE)
 				}

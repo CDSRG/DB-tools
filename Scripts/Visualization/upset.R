@@ -195,19 +195,24 @@ suppressMessages(setMethod("upsetDB", "RODBC",
 				print("Attempting to query table in DB... ")
 			}
 			if (odbcQuery(x,
-				paste(
-					"SELECT ", 
-					paste(use.columns, sep="", collapse=","),
-					" FROM ", table, 
-					if (sample & base.table) {
-						paste(" TABLESAMPLE (", sample, " PERCENT)", sep="")
-					} else if (sample) {
-						# ALTERNATIVE METHOD HERE FOR SELECTING RANDOM ROWS FROM 'VIEW' TABLES
-						# e.g. see https://www.brentozar.com/archive/2018/03/get-random-row-large-table/
-						# or just do the select and then afterwards do the sample (like query section above)
-					},
-					sep=""
-				)
+				if (sample & base.table) {
+					paste("SELECT ", 
+						paste(use.columns, sep="", collapse=","),
+						" FROM ", table, 
+						" TABLESAMPLE (", sample, " PERCENT)", sep=""
+					)
+				} else if (sample) {
+					paste("SELECT TOP ", sample, " PERCENT", 
+						paste(use.columns, sep="", collapse=","),
+						" FROM ", table, sep=""
+					)
+				} else {
+					paste(
+						"SELECT ", 
+						paste(use.columns, sep="", collapse=","),
+						" FROM ", table, sep=""
+					)
+				},
 			) < 0) {
 				if (verbose) {
 					print("ERROR\n")

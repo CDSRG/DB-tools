@@ -10,6 +10,32 @@ if (!isNamespaceLoaded("RODBC")) {
 	require("RODBC")
 }
 
+## function description here -- lists/explains each variable input, overall output, etc.
+###
+###
+###
+newFunction <- function(con, tableNames=NULL, match=NULL, returnType=FALSE) {
+	# test database connection and clear error log
+	tryCatch(
+		odbcClearError(con),
+		error=function(e) {
+			warning(e)
+			return()
+		}
+	)
+	# allow for using ALL tables (as default)
+	# build in error wrapping / handling for all these queries
+	#possible also to write this code using individual tableExists checks
+	tables <- as.character(sqlQuery(con, "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES"))
+	if ((is.null(tableNames)) || (any(tableNames == "*"))) {
+		tableNames <- tables
+	}
+	else {
+		tableNames <- intersect(as.character(tableNames), tables)
+	}
+	
+	
+}
 
 buildSearchString <- function(targets = NULL, match=NULL, field="COLUMN_NAME") {
 	if (is.null(targets)) {

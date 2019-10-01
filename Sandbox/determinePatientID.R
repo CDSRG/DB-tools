@@ -149,7 +149,7 @@ newFunction <- function(con, tableNames=NULL, targets=NULL, match=NULL, types=NU
 			paste("SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS ", 
 					searchString, 
 					restrictString, 
-					sep = 0
+					sep = ""
 			)
 		)
 	)

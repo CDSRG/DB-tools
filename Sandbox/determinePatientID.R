@@ -14,7 +14,7 @@ if (!isNamespaceLoaded("RODBC")) {
 ###
 ###
 ###
-newFunction <- function(con, tableNames=NULL, targets=NULL, match=NULL, types=NULL) {
+newFunction <- function(con, tableNames=NULL, targets=NULL, match=NULL, types=NULL, field="COLUMN_NAME") {
 	# test database connection and clear error log
 	tryCatch(
 		odbcClearError(con),
@@ -35,7 +35,6 @@ newFunction <- function(con, tableNames=NULL, targets=NULL, match=NULL, types=NU
 		#can do some error/warning throwing here for ones that didn't match
 	}
 
-	buildSearchString <- function(targets = NULL, match=NULL, field="COLUMN_NAME") {
 		if (is.null(targets)) {
 			warning("argument 'targets' must specify one or more column name(s)")
 			return("")
@@ -139,22 +138,17 @@ newFunction <- function(con, tableNames=NULL, targets=NULL, match=NULL, types=NU
 			if ((exclude.len > 0) & (notlike.len > 0)) { ")" },
 			sep=""
 		)
-		return(searchString)
-	}	
 
-	restrictDataType <- function(types = NULL) {
 		# AND DATA_TYPE IN ('type1','type2',...)
 
 		restrictString <- paste(" AND DATA_TYPE IN (", paste("'", types, "'", collapse=", ", sep=""), ")", sep = "")
-		return(restrictString)
-	}		
 
 	targetQuery <- as.data.frame(
 		sqlQuery(
 			con, 
 			paste("SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS ", 
-					buildSearchString(targets, match), 
-					restrictDataType(types), 
+					searchString, 
+					restrictString, 
 					sep = 0
 			)
 		)

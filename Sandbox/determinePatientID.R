@@ -14,7 +14,7 @@ if (!isNamespaceLoaded("RODBC")) {
 ###
 ###
 ###
-newFunction <- function(con, tableNames=NULL, match=NULL, returnType=FALSE) {
+newFunction <- function(con, tableNames=NULL, targets=NULL, match=NULL, types=NULL) {
 	# test database connection and clear error log
 	tryCatch(
 		odbcClearError(con),
@@ -26,143 +26,145 @@ newFunction <- function(con, tableNames=NULL, match=NULL, returnType=FALSE) {
 	# allow for using ALL tables (as default)
 	# build in error wrapping / handling for all these queries
 	#possible also to write this code using individual tableExists checks
-	tables <- as.character(sqlQuery(con, "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES"))
+	tables <- as.character(sqlQuery(con, "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES")[,1])
 	if ((is.null(tableNames)) || (any(tableNames == "*"))) {
 		tableNames <- tables
 	}
 	else {
 		tableNames <- intersect(as.character(tableNames), tables)
+		#can do some error/warning throwing here for ones that didn't match
 	}
-	
-	
-}
 
-buildSearchString <- function(targets = NULL, match=NULL, field="COLUMN_NAME") {
-	if (is.null(targets)) {
-		warning("argument 'targets' must specify one or more column name(s)")
-		return("")
-	}
-	else if (all(is.na(targets))) {
-		warning("argument 'targets' must specify one or more column name(s)")
-		return("")
-	}
-	else if (!is.character(targets)) {
-		warning("argument 'targets' must specify one or more column name(s)")
-		return("")
-	}
-	else if (any(grepl("'", targets))) {
-		warning("value(s) in 'targets' cannot contain quotes: ", targets[grepl("'", targets)])
-		targets <- targets[!grepl("'", targets)]
-	}
-	if (length(targets) < 1) {
-		warning("argument 'targets' must specify one or more column name(s)")
-		return("")
-	}
-	if (is.null(match)) {
-		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
-		return("")
-	}
-	else if (all(is.na(match))) {
-		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
-		return("")
-	}
-	else if (!is.character(match)) {
-		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
-		return("")
-	}
-	if (any(!match %in% c("exact", "like", "exclude", "notlike"))) {
-		warning("ignoring unexpected value(s) of 'match': ", 
-			paste(match[which(!match %in% c("exact", "like", "exclude", "notlike"))], collapse=", ")
-		)
-		match <- match[which(match %in% c("exact", "like", "exclude", "notlike"))]
-	}
-	if (length(match) < 1) {
-		warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
-		return("")
-	}
-	if (length(targets) != length(match)) {
-		if (length(match) == 1) {
-			match <- rep(match, length(targets))
-		}
-		else {
-			warning("lengths of arguments 'targets' and 'match' must be the same")
+	buildSearchString <- function(targets = NULL, match=NULL, field="COLUMN_NAME") {
+		if (is.null(targets)) {
+			warning("argument 'targets' must specify one or more column name(s)")
 			return("")
 		}
-	}
-	if ((!is.character(field)) || (length(field) != 1)) {
-		warning("argument 'field' must specify a single column name to search")
-		return("")
-	} 
-	matches.exact <- which(match == "exact")
-	exact.len <- length(matches.exact)
-	matches.exclude <- which(match == "exclude")
-	exclude.len <- length(matches.exclude)
-	matches.like <- which(match == "like")
-	like.len <- length(matches.like)
-	matches.notlike <- which(match == "notlike")
-	notlike.len <- length(matches.notlike)
-	if (exact.len == 1) {
-		queryString.exact <- paste(field, " == '", targets[matches.exact], "'", sep="")
-	}
-	else if (exact.len > 1) {
-		queryString.exact <- paste(field, " IN (",
-			paste("'", targets[matches.exact], "'", collapse=",", sep=""),
- 			")", sep=""
- 		)
-	}
-	if (like.len >= 1) {
-		queryString.like <- paste(field, " LIKE '%", targets[matches.like], "%'", collapse=" OR ", sep="")
-	}
-	if (exclude.len == 1) {
-		queryString.exclude <- paste(field, " != '", targets[matches.exclude], "'", sep="")
-	}
-	else if (exclude.len > 1) {
-		queryString.exclude <- paste(field, " NOT IN (",
-			paste("'", targets[matches.exclude], "'", collapse=",", sep=""),
- 			")", sep=""
- 		)
-	}
-	if (notlike.len >= 1) {
-		queryString.notlike <- paste(field, " NOT LIKE '%", 
-			targets[matches.notlike], "%'", collapse=" OR ", sep=""
+		else if (all(is.na(targets))) {
+			warning("argument 'targets' must specify one or more column name(s)")
+			return("")
+		}
+		else if (!is.character(targets)) {
+			warning("argument 'targets' must specify one or more column name(s)")
+			return("")
+		}
+		else if (any(grepl("'", targets))) {
+			warning("value(s) in 'targets' cannot contain quotes: ", targets[grepl("'", targets)])
+			targets <- targets[!grepl("'", targets)]
+		}
+		if (length(targets) < 1) {
+			warning("argument 'targets' must specify one or more column name(s)")
+			return("")
+		}
+		if (is.null(match)) {
+			warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
+			return("")
+		}
+		else if (all(is.na(match))) {
+			warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
+			return("")
+		}
+		else if (!is.character(match)) {
+			warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
+			return("")
+		}
+		if (any(!match %in% c("exact", "like", "exclude", "notlike"))) {
+			warning("ignoring unexpected value(s) of 'match': ", 
+				paste(match[which(!match %in% c("exact", "like", "exclude", "notlike"))], collapse=", ")
+			)
+			match <- match[which(match %in% c("exact", "like", "exclude", "notlike"))]
+		}
+		if (length(match) < 1) {
+			warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
+			return("")
+		}
+		if (length(targets) != length(match)) {
+			if (length(match) == 1) {
+				match <- rep(match, length(targets))
+			}
+			else {
+				warning("lengths of arguments 'targets' and 'match' must be the same")
+				return("")
+			}
+		}
+		if ((!is.character(field)) || (length(field) != 1)) {
+			warning("argument 'field' must specify a single column name to search")
+			return("")
+		} 
+		matches.exact <- which(match == "exact")
+		exact.len <- length(matches.exact)
+		matches.exclude <- which(match == "exclude")
+		exclude.len <- length(matches.exclude)
+		matches.like <- which(match == "like")
+		like.len <- length(matches.like)
+		matches.notlike <- which(match == "notlike")
+		notlike.len <- length(matches.notlike)
+		if (exact.len == 1) {
+			queryString.exact <- paste(field, " == '", targets[matches.exact], "'", sep="")
+		}
+		else if (exact.len > 1) {
+			queryString.exact <- paste(field, " IN (",
+				paste("'", targets[matches.exact], "'", collapse=",", sep=""),
+	 			")", sep=""
+	 		)
+		}
+		if (like.len >= 1) {
+			queryString.like <- paste(field, " LIKE '%", targets[matches.like], "%'", collapse=" OR ", sep="")
+		}
+		if (exclude.len == 1) {
+			queryString.exclude <- paste(field, " != '", targets[matches.exclude], "'", sep="")
+		}
+		else if (exclude.len > 1) {
+			queryString.exclude <- paste(field, " NOT IN (",
+				paste("'", targets[matches.exclude], "'", collapse=",", sep=""),
+	 			")", sep=""
+	 		)
+		}
+		if (notlike.len >= 1) {
+			queryString.notlike <- paste(field, " NOT LIKE '%", 
+				targets[matches.notlike], "%'", collapse=" OR ", sep=""
+			)
+		}
+		searchString <- paste("WHERE ",
+			if ((exact.len > 0) & (like.len > 0)) { "(" },
+			if (exact.len > 0) { paste("(", queryString.exact, ")", sep="") },
+			if ((exact.len > 0) & (like.len > 0)) { " OR " },
+			if (like.len > 0) { paste("(", queryString.like, ")", sep="") },
+			if ((exact.len > 0) & (like.len > 0)) { ")" },
+			if ((exact.len+like.len > 0) & (exclude.len+notlike.len > 0)) { " AND " },
+			if ((exclude.len > 0) & (notlike.len > 0)) { "(" },
+			if (exclude.len > 0) { paste("(", queryString.exclude, ")", sep="") },
+			if ((exclude.len > 0) & (notlike.len > 0)) { " OR " },
+			if (notlike.len > 0) { paste("(", queryString.notlike, ")", sep="") },
+			if ((exclude.len > 0) & (notlike.len > 0)) { ")" },
+			sep=""
 		)
-	}
-	searchString <- paste("WHERE ",
-		if ((exact.len > 0) & (like.len > 0)) { "(" },
-		if (exact.len > 0) { paste("(", queryString.exact, ")", sep="") },
-		if ((exact.len > 0) & (like.len > 0)) { " OR " },
-		if (like.len > 0) { paste("(", queryString.like, ")", sep="") },
-		if ((exact.len > 0) & (like.len > 0)) { ")" },
-		if ((exact.len+like.len > 0) & (exclude.len+notlike.len > 0)) { " AND " },
-		if ((exclude.len > 0) & (notlike.len > 0)) { "(" },
-		if (exclude.len > 0) { paste("(", queryString.exclude, ")", sep="") },
-		if ((exclude.len > 0) & (notlike.len > 0)) { " OR " },
-		if (notlike.len > 0) { paste("(", queryString.notlike, ")", sep="") },
-		if ((exclude.len > 0) & (notlike.len > 0)) { ")" },
-		sep=""
+		return(searchString)
+	}	
+
+	restrictDataType <- function(types = NULL) {
+		# AND DATA_TYPE IN ('type1','type2',...)
+
+		restrictString <- paste(" AND DATA_TYPE IN (", paste("'", types, "'", collapse=", ", sep=""), ")", sep = "")
+		return(restrictString)
+	}		
+
+	targetQuery <- as.data.frame(
+		sqlQuery(
+			con, 
+			paste("SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS ", 
+					buildSearchString(targets, match), 
+					restrictDataType(types), 
+					sep = 0
+			)
+		)
 	)
-	return(searchString)
-}
-
-restrictDataType <- function(types = NULL) {
-	# AND DATA_TYPE IN ('type1','type2',...)
-
-	restrictString <- paste(" AND DATA_TYPE IN (", paste("'", types, "'", collapse=", ", sep=""), ")", sep = "")
-	return(restrictString)
+	return(targetQuery[which(targetQuery[,1] %in% tableNames),])
 }
 
 
 
-buildTargetQuery <- function(x = searchString, y = restrictString) {
-	targetQuery <- paste("SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS ", searchString, restrictString, sep = 0)
-	return(targetQuery)
-}
 
-
-findTargets <- function(con, targetQuery, ...) {
-	results <- as.data.frame(sqlQuery(con, query))
-	return(results)
-}
 
 
 

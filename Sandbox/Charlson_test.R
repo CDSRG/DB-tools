@@ -233,7 +233,7 @@ for (pat in 1:length(patList)) {
 
   for (cat in 2:(length(CharlsonCats)+1)) {
     
-    if (!is.null(length(patDx[which(patDx[,4] == CharlsonCats[cat]),3]))) {
+    if (length(patDx[which(patDx[,4] == CharlsonCats[cat]),3]) > 0) {
       
       patCharl[pat, CharlsonCats[cat]] <- min(patDx[which(patDx[,4] == CharlsonCats[cat]),3], na.rm = TRUE)
       

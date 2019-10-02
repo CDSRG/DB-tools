@@ -231,7 +231,7 @@ for (pat in 1:length(patList)) {
   
   ### get earliest patient diagnosis for each category
 
-  for (cat in 2:(length(CharlsonCats)+1)) {
+  for (cat in 1:length(CharlsonCats)) {
     
     if (length(patDx[which(patDx[,4] == CharlsonCats[cat]),3]) > 0) {
       
@@ -249,3 +249,89 @@ for (pat in 1:length(patList)) {
 ### save data frame to database as table
 
 sqlSave(con, patCharl, "CJM_Charlson_dates", rownames = FALSE, colnames = TRUE, nastring = "NULL")
+
+
+
+##########################################################################################
+
+### instantiate list holding weight values for each Charlson category
+
+weights <- list(MI = 1, CHF = 1, PVasc = 1, CVasc = 1, Dem = 1, Pulm = 1, Rheum = 1, PUD = 1, MilLiv = 1, DiabCompNO = 1, DiabCompYES = 2, Plegia = 2, Renal = 2, Malig = 2, ModSevLiv = 3, Mets = 6, AIDS_HIV = 6)
+
+### create data frame to hold output
+
+patScores <- data.frame(PatientICN = numeric(), CharlsonIndex = numeric())
+
+### use diagnostic dates to calculate Charlson Index comorbidity score BASED ON CURRENT DATE
+
+for (pat in 1:nrow(patCharl)) {
+  score <- 0
+  for (cat in 1:length(CharlsonCats)) {
+    if (!is.na(patCharl[pat, CharlsonCats[cat]])) {
+      score <- score + weights[[CharlsonCats[cat]]]
+    }
+  }
+  patScores[pat, "PatientICN"] <- patCharl[pat, "PatientICN"]
+  patScores[pat, "CharlsonIndex"] <- score
+  rm(score)
+}
+
+
+########################### OR ###########################
+### use diagnostic dates to calculate Charlson Index comorbidity score BASED ON GIVEN DATE
+
+### RETRIEVE DESIRED DATE
+
+patProcQuery <- "SELECT DISTINCT(PatientICN), origDate FROM ORD_Gundle_201703063D.Dflt.CJM_cohort_FINAL"
+patProcs <- sqlQuery(con, patProcQuery, as.is = TRUE)
+
+### coerce original procedure date to Date type
+
+patProcs$origDate <- as.Date(patProcs$origDate)
+
+
+
+for (pat in 1:nrow(patCharl)) {
+  score <- 0
+  for (cat in 1:length(CharlsonCats)) {
+    if (!is.na(patCharl[pat, CharlsonCats[cat]])) {
+      if (patProcs[which(patProcs[,1] == patCharl[pat, "PatientICN"]), "origDate"] > patCharl[pat, CharlsonCats[cat]]) {
+        score <- score + weights[[CharlsonCats[cat]]]
+      }
+    }
+  }
+  patScores[pat, "PatientICN"] <- patCharl[pat, "PatientICN"]
+  patScores[pat, "CharlsonIndex"] <- score
+  rm(score)
+}
+
+
+################################# BOTH VERSIONS COMBINED
+
+bothPatScores <- data.frame(PatientICN = numeric(), CharlsonNOW = numeric(), CharlsonAtPROC = numeric())
+
+for (pat in 1:nrow(patCharl)) {
+  score <- 0
+  scoreAtProc <- 0
+  for (cat in 1:length(CharlsonCats)) {
+    if (!is.na(patCharl[pat, CharlsonCats[cat]])) {
+      score <- score + weights[[CharlsonCats[cat]]]
+      if (patProcs[which(patProcs[,1] == patCharl[pat, "PatientICN"]), "origDate"] > patCharl[pat, CharlsonCats[cat]]) {
+        scoreAtProc <- scoreAtProc + weights[[CharlsonCats[cat]]]
+      }
+    }
+  }
+  bothPatScores[pat, "PatientICN"] <- patCharl[pat, "PatientICN"]
+  bothPatScores[pat, "CharlsonNOW"] <- score
+  bothPatScores[pat, "CharlsonAtPROC"] <- scoreAtProc
+}
+
+
+
+sqlSave(con, bothPatScores, "CJM_Charlson_scores", rownames = FALSE, colnames = TRUE, nastring = "NULL")
+  
+  
+  
+  
+  
+  

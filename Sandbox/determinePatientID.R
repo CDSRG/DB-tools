@@ -67,11 +67,11 @@ newFunction <- function(con, tableNames=NULL, targets=NULL, match=NULL, types=NU
 			warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
 			return("")
 		}
-		if (any(!match %in% c("exact", "like", "exclude", "notlike"))) {
+		if (any(!match %in% c("exact", "like", "exclude", "notlike", "regexp"))) {
 			warning("ignoring unexpected value(s) of 'match': ", 
-				paste(match[which(!match %in% c("exact", "like", "exclude", "notlike"))], collapse=", ")
+				paste(match[which(!match %in% c("exact", "like", "exclude", "notlike", "regexp"))], collapse=", ")
 			)
-			match <- match[which(match %in% c("exact", "like", "exclude", "notlike"))]
+			match <- match[which(match %in% c("exact", "like", "exclude", "notlike", "regexp"))]
 		}
 		if (length(match) < 1) {
 			warning("argument 'match' must specify matching parameter(s) for each column name in 'targets'")
@@ -98,6 +98,8 @@ newFunction <- function(con, tableNames=NULL, targets=NULL, match=NULL, types=NU
 		like.len <- length(matches.like)
 		matches.notlike <- which(match == "notlike")
 		notlike.len <- length(matches.notlike)
+		matches.regexp <- which(match == "regexp")
+		regexp.len <- length(matches.regexp)
 		if (exact.len == 1) {
 			queryString.exact <- paste(field, " == '", targets[matches.exact], "'", sep="")
 		}
@@ -153,6 +155,10 @@ newFunction <- function(con, tableNames=NULL, targets=NULL, match=NULL, types=NU
 			)
 		)
 	)
+	
+	## insert regexp processing here -- query all columns from schema and then in R perform regexp matching
+	## then do unique combo of targetQuery and regexp-processed list to return full set
+	
 	return(targetQuery[which(targetQuery[,1] %in% tableNames),])
 }
 

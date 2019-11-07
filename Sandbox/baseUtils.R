@@ -7,6 +7,15 @@ if (!isNamespaceLoaded("RODBC")) {
 	suppressPackageStartupMessages(require("RODBC"))
 }
 
+# Load +/- install RODBC package
+if (!requireNamespace("data.table", partial=TRUE, quietly = TRUE)) {
+	message("installing missing package 'data.table'")
+	suppressMessages(install.packages("data.table", quiet=TRUE))
+}
+if (!isNamespaceLoaded("data.table")) {
+	suppressPackageStartupMessages(require("data.table"))
+}
+
 vPrint <- function(verbose=FALSE, level=0, ...) {
   if (verbose > level) {
   	message <- paste(..., sep="")
@@ -39,7 +48,7 @@ prepQuery <- function(con, query=NULL, verbose=FALSE) {
 }
 
 #function still needs to be tested/debugged/etc.
-fetchQuery <- function(con, n=NULL, verbose=FALSE, keep=FALSE, FUN=NULL, ...) {
+fetchQuery <- function(con, n=NULL, buffsize=1000, verbose=FALSE, keep=FALSE, FUN=NULL, ...) {
 	# test database connection
 	if (!RODBC:::odbcValidChannel(con)) {
 		warning("Invalid DB connection")
@@ -51,14 +60,15 @@ fetchQuery <- function(con, n=NULL, verbose=FALSE, keep=FALSE, FUN=NULL, ...) {
 	n <- max(0, floor(n), na.rm=TRUE)
 	if (is.null(FUN)) {
 		vPrint(verbose, 2, "Fetching query results", if (n > 0) { paste(" (n=", n, ")", sep="") })
-		return(odbcFetchRows(con, max=n))
+		return(.Call(C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE))
 	}
 	FUN <- match.fun(FUN)
 	counter <- 0
 	results <- list()
-	while(!identical(data <- odbcFetchRows(con, max=n), -2)) {
+	while(!identical(data <- .Call(C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE), -2)) {
 		vPrint(verbose, 2, "Fetching query results", if (n > 0) { paste(" (", counter*n, "-", (counter+1)*n-1, ")", sep="") })
 		counter <- counter + 1
+		setDT(data)
 		tryCatch(
 			if (keep) {
 				results[[counter]]$processed <- resultsforceAndCall(1, FUN, data, ...)

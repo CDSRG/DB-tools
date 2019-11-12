@@ -7,7 +7,7 @@ if (!isNamespaceLoaded("RODBC")) {
 	suppressPackageStartupMessages(require("RODBC"))
 }
 
-# Load +/- install RODBC package
+# Load +/- install data.table package
 if (!requireNamespace("data.table", partial=TRUE, quietly = TRUE)) {
 	message("installing missing package 'data.table'")
 	suppressMessages(install.packages("data.table", quiet=TRUE))
@@ -91,6 +91,10 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, verbose=FALSE, keep=FALSE, FU
 
 
 ###  CAN MULTIPLE CONNECTIONS RUN AT SAME TIME FROM R?!?!?  CAN THEN USE MULTIPLE CONNECTIONS TO GET PARTS OF RESULTS SIMULTANEOUSLY??
+### The only workable method I've found to run multiple connections is to open multiple instances of R, and they don't share stuff 
+### (stuff = data, environment?).  So you could do it, but you'd have to save the results parts and read them into your main instance.
+
+
 
 #ICD9 <- c("99.%", "105.4", "531-534.999", "601-603.4")
 #ICD10 <- c("K25-K28.999")

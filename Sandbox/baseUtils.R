@@ -167,7 +167,7 @@ whereConstruct <- function(columns=list(), dates=NULL, required=NULL) {
 				queryString.null <- paste(field, " IS NULL", sep="")
 			}
 			if (exact.len == 1) {
-				queryString.exact <- paste(field, " == '", vals[vals.exact], "'", sep="")
+				queryString.exact <- paste(field, " = '", vals[vals.exact], "'", sep="")
 			}
 			else if (exact.len > 1) {
 				queryString.exact <- paste(field, " IN (",

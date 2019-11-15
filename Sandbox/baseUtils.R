@@ -33,7 +33,7 @@ if (!isNamespaceLoaded("logger")) {
 prepQuery <- function(con, query=NULL) {
 	# test database connection and clear error log
 	if (!RODBC:::odbcValidChannel(con)) {
-		log_warn("Invalid DB connection")
+		log_error("Invalid DB connection")
 		return(FALSE)
 	}
 	tryCatch(
@@ -45,8 +45,8 @@ prepQuery <- function(con, query=NULL) {
 	)
 	log_info("Prepping query: ", query)
 	if (odbcQuery(con, query) < 0) {
-		log_warn("error evaluating query '", query, "' using provided DB connection")
-		log_warn(odbcGetErrMsg(con))
+		log_error("error evaluating query '", query, "' using provided DB connection")
+		log_error(odbcGetErrMsg(con))
 		return(FALSE)
 	}
 	return(TRUE)
@@ -56,7 +56,7 @@ prepQuery <- function(con, query=NULL) {
 fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, ...) {
 	# test database connection
 	if (!RODBC:::odbcValidChannel(con)) {
-		log_warn("Invalid DB connection")
+		log_error("Invalid DB connection")
 		return(FALSE)
 	}
 	if (!is.numeric(n) | (length(n) != 1)) { 
@@ -73,7 +73,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, ...) {
 	while(!identical(data <- .Call(C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE), -2)) {
 		log_info("Fetching query results", if (n > 0) { paste(" (", counter*n, "-", (counter+1)*n-1, ")", sep="") })
 		counter <- counter + 1
-		setDT(data)
+#		setDT(data)
 		tryCatch(
 			if (keep) {
 				results[[counter]]$processed <- resultsforceAndCall(1, FUN, data, ...)
@@ -81,8 +81,8 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, ...) {
 				resultsforceAndCall(1, FUN, data, ...)
 			},
 			error=function(e) {
-				log_warn(e)
-				log_warn(odbcGetErrMsg(con))
+				log_error(e)
+				log_error(odbcGetErrMsg(con))
 				return(FALSE)
 			}
 		)

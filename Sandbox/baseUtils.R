@@ -30,7 +30,7 @@ if (!isNamespaceLoaded("logger")) {
 #t <- tempfile()
 #log_appender(appender_file(t), index=2)
 
-prepQuery <- function(con, query=NULL) {
+prepQuery <- function(con, query=NULL, rows_at_time=attr(con, "rows_at_time")) {
 	# test database connection and clear error log
 	if (!RODBC:::odbcValidChannel(con)) {
 		log_error("Invalid DB connection")
@@ -43,8 +43,24 @@ prepQuery <- function(con, query=NULL) {
 			return(FALSE)
 		}
 	)
-	log_info("Prepping query: ", query)
-	if (odbcQuery(con, query) < 0) {
+	if (is.null(query)) {
+		log_warn("Missing value for 'query'")
+		return(FALSE)
+	}
+	if (!is.character(query)) {
+		log_warn("Converting from non-character value provided for 'query'")
+		query <- as.character(query)
+	}
+	if (length(query) != 1) {
+		log_warn("Single value required for 'query'")
+		return(FALSE)
+	}
+	if (nchar(query) < 1) {
+		log_warn("Empty 'query' provided")
+		return(FALSE)
+	}
+	log_info("Prepping query: ", query)	
+	if (.Call(RODBC:::C_RODBCQuery, attr(con, "handle_ptr"), query, as.integer(rows_at_time)) < 0) {
 		log_error("error evaluating query '", query, "' using provided DB connection")
 		log_error(odbcGetErrMsg(con))
 		return(FALSE)

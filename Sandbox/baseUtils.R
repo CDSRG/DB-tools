@@ -7,7 +7,7 @@ if (!isNamespaceLoaded("RODBC")) {
 	suppressPackageStartupMessages(require("RODBC"))
 }
 
-# Load +/- install RODBC package
+# Load +/- install data.table package
 if (!requireNamespace("data.table", partial=TRUE, quietly = TRUE)) {
 	message("installing missing package 'data.table'")
 	suppressMessages(install.packages("data.table", quiet=TRUE))
@@ -16,42 +16,47 @@ if (!isNamespaceLoaded("data.table")) {
 	suppressPackageStartupMessages(require("data.table"))
 }
 
-vPrint <- function(verbose=FALSE, level=0, ...) {
-  if (verbose > level) {
-  	message <- paste(..., sep="")
-  	if (length(message) > 0) {
-	    print(message)
-  	}
-  }
+# Load +/- install logger package
+if (!requireNamespace("logger", partial=TRUE, quietly = TRUE)) {
+	message("installing missing package 'logger'")
+	suppressMessages(install.packages("logger", quiet=TRUE))
+}
+if (!isNamespaceLoaded("logger")) {
+	suppressPackageStartupMessages(require("logger"))
 }
 
-prepQuery <- function(con, query=NULL, verbose=FALSE) {
+#specify logging behavior however you wish... e.g.:
+#log_appender(index=1)
+#t <- tempfile()
+#log_appender(appender_file(t), index=2)
+
+prepQuery <- function(con, query=NULL) {
 	# test database connection and clear error log
 	if (!RODBC:::odbcValidChannel(con)) {
-		warning("Invalid DB connection")
+		log_warn("Invalid DB connection")
 		return(FALSE)
 	}
 	tryCatch(
 		odbcClearError(con),
 		error=function(e) {
-			warning(e)
+			log_warn(e)
 			return(FALSE)
 		}
 	)
-	vPrint(verbose, 2, "Prepping query: ", query)
+	log_info("Prepping query: ", query)
 	if (odbcQuery(con, query) < 0) {
-		warning("error evaluating query '", query, "' using provided DB connection")
-		warning(odbcGetErrMsg(con))
+		log_warn("error evaluating query '", query, "' using provided DB connection")
+		log_warn(odbcGetErrMsg(con))
 		return(FALSE)
 	}
 	return(TRUE)
 }
 
 #function still needs to be tested/debugged/etc.
-fetchQuery <- function(con, n=NULL, buffsize=1000, verbose=FALSE, keep=FALSE, FUN=NULL, ...) {
+fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, ...) {
 	# test database connection
 	if (!RODBC:::odbcValidChannel(con)) {
-		warning("Invalid DB connection")
+		log_warn("Invalid DB connection")
 		return(FALSE)
 	}
 	if (!is.numeric(n) | (length(n) != 1)) { 
@@ -59,14 +64,14 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, verbose=FALSE, keep=FALSE, FU
 	}
 	n <- max(0, floor(n), na.rm=TRUE)
 	if (is.null(FUN)) {
-		vPrint(verbose, 2, "Fetching query results", if (n > 0) { paste(" (n=", n, ")", sep="") })
+		log_info("Fetching query results", if (n > 0) { paste(" (n=", n, ")", sep="") })
 		return(.Call(C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE))
 	}
 	FUN <- match.fun(FUN)
 	counter <- 0
 	results <- list()
 	while(!identical(data <- .Call(C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE), -2)) {
-		vPrint(verbose, 2, "Fetching query results", if (n > 0) { paste(" (", counter*n, "-", (counter+1)*n-1, ")", sep="") })
+		log_info("Fetching query results", if (n > 0) { paste(" (", counter*n, "-", (counter+1)*n-1, ")", sep="") })
 		counter <- counter + 1
 		setDT(data)
 		tryCatch(
@@ -76,8 +81,8 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, verbose=FALSE, keep=FALSE, FU
 				resultsforceAndCall(1, FUN, data, ...)
 			},
 			error=function(e) {
-				warning(e)
-				warning(odbcGetErrMsg(con))
+				log_warn(e)
+				log_warn(odbcGetErrMsg(con))
 				return(FALSE)
 			}
 		)

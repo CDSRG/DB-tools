@@ -8,13 +8,13 @@ if (!isNamespaceLoaded("RODBC")) {
 }
 
 # Load +/- install data.table package
-if (!requireNamespace("data.table", partial=TRUE, quietly = TRUE)) {
-	message("installing missing package 'data.table'")
-	suppressMessages(install.packages("data.table", quiet=TRUE))
-}
-if (!isNamespaceLoaded("data.table")) {
-	suppressPackageStartupMessages(require("data.table"))
-}
+#if (!requireNamespace("data.table", partial=TRUE, quietly = TRUE)) {
+#	message("installing missing package 'data.table'")
+#	suppressMessages(install.packages("data.table", quiet=TRUE))
+#}
+#if (!isNamespaceLoaded("data.table")) {
+#	suppressPackageStartupMessages(require("data.table"))
+#}
 
 # Load +/- install logger package
 if (!requireNamespace("logger", partial=TRUE, quietly = TRUE)) {

@@ -65,12 +65,12 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, ...) {
 	n <- max(0, floor(n), na.rm=TRUE)
 	if (is.null(FUN)) {
 		log_info("Fetching query results", if (n > 0) { paste(" (n=", n, ")", sep="") })
-		return(.Call(C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE))
+		return(.Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE))
 	}
 	FUN <- match.fun(FUN)
 	counter <- 0
 	results <- list()
-	while(!identical(data <- .Call(C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE), -2)) {
+	while(!identical(data <- .Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE), -2)) {
 		log_info("Fetching query results", if (n > 0) { paste(" (", counter*n, "-", (counter+1)*n-1, ")", sep="") })
 		counter <- counter + 1
 #		setDT(data)

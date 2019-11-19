@@ -69,12 +69,18 @@ prepQuery <- function(con, query=NULL, rows_at_time=attr(con, "rows_at_time")) {
 }
 
 #function still needs to be tested/debugged/etc.
-fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, ...) {
+fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=FALSE, ...) {
 	# test database connection
 	if (!RODBC:::odbcValidChannel(con)) {
 		log_error("Invalid DB connection")
 		return(FALSE)
 	}
+	cols <- .Call(RODBC:::C_RODBCNumCols, attr(con, "handle_ptr"))
+	if (cols < 0L) {
+		log_error("No data")
+        return(FALSE)
+    }
+    cData <- .Call(RODBC:::C_RODBCColData, attr(con, "handle_ptr"))
 	if (!is.numeric(n) | (length(n) != 1)) { 
 		n <- 0
 	}
@@ -83,18 +89,41 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, ...) {
 		log_info("Fetching query results", if (n > 0) { paste(" (n=", n, ")", sep="") })
 		return(.Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE))
 	}
+	if (is.logical(as.is) & length(as.is) == 1) {
+		as.is <- rep(as.is, length=cols)
+    }
+	else if (is.numeric(as.is)) {
+		if (any(as.is < 1 | as.is > cols)) 
+			log_warn("invalid numeric 'as.is' values: ", as.is[which(as.is < 1 | as.is > cols)])
+		as.is <- as.is[which(as.is >= 1 & as.is <= cols)]
+		i <- rep(FALSE, cols)
+		i[as.is] <- TRUE
+		as.is <- i
+	}
+	else if (is.character(as.is)) {
+		as.is <- cData$names %in% as.is
+	}
+	if (length(as.is) != cols) {
+		log_error("'as.is' has the wrong length ", length(as.is), " != cols = ", cols)
+		return(FALSE)
+	}
 	FUN <- match.fun(FUN)
 	counter <- 0
 	results <- list()
-	while(!identical(data <- .Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE), -2)) {
+	repeat {
+		data <- .Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE)
+		if ((data$stat) < 0L) {
+			break
+		}
 		log_info("Fetching query results", if (n > 0) { paste(" (", counter*n, "-", (counter+1)*n-1, ")", sep="") })
 		counter <- counter + 1
-#		setDT(data)
+		names(data$data) <- cData$names
+		## coerce data according to as.is value and cData$type !!!  (see code for RODBC:::sqlGetResults)
 		tryCatch(
 			if (keep) {
-				results[[counter]]$processed <- forceAndCall(1, FUN, data, ...)
+				results[[counter]]$processed <- forceAndCall(1, FUN, data$data, ...)
 			} else {
-				forceAndCall(1, FUN, data, ...)
+				forceAndCall(1, FUN, data$data, ...)
 			},
 			error=function(e) {
 				log_error(e)
@@ -103,7 +132,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, ...) {
 			}
 		)
 		if (keep) {
-			results[[counter]]$raw <- data
+			results[[counter]]$raw <- data$data
 		}
 	}
 	if (keep) { return(results) }

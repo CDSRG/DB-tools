@@ -85,10 +85,6 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 		n <- 0
 	}
 	n <- max(0, floor(n), na.rm=TRUE)
-	if (is.null(FUN)) {
-		log_info("Fetching query results", if (n > 0) { paste(" (n=", n, ")", sep="") })
-		return(.Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE))
-	}
 	if (is.logical(as.is) & length(as.is) == 1) {
 		as.is <- rep(as.is, length=cols)
     }
@@ -107,7 +103,13 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 		log_error("'as.is' has the wrong length ", length(as.is), " != cols = ", cols)
 		return(FALSE)
 	}
-	FUN <- match.fun(FUN)
+	as.is <- which(as.is)
+	if (is.null(FUN)) {
+		FUN <- return
+	}
+	else {
+		FUN <- match.fun(FUN)
+	}
 	counter <- 0
 	results <- list()
 	repeat {
@@ -118,7 +120,16 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 		log_info("Fetching query results", if (n > 0) { paste(" (", counter*n, "-", (counter+1)*n-1, ")", sep="") })
 		counter <- counter + 1
 		names(data$data) <- cData$names
-		## coerce data according to as.is value and cData$type !!!  (see code for RODBC:::sqlGetResults)
+		for (i in as.is) {
+			switch(cData$type[i],
+				int = data$data[[i]] <- as.integer(data$data[[i]]),
+				smallint = data$data[[i]] <- as.integer(data$data[[i]]),
+				decimal = data$data[[i]] <- as.numeric(data$data[[i]]),
+				date = data$data[[i]] <- as.Date(data$data[[i]]),
+				timestamp = data$data[[i]] <- as.POSIXct(data$data[[i]]),
+				unknown = data$data[[i]] <- type.convert(data$data[[i]])
+         	)
+		}
 		tryCatch(
 			if (keep) {
 				results[[counter]]$processed <- forceAndCall(1, FUN, data$data, ...)
@@ -139,10 +150,6 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 	return(TRUE)
 }
 
-
-###  CAN MULTIPLE CONNECTIONS RUN AT SAME TIME FROM R?!?!?  CAN THEN USE MULTIPLE CONNECTIONS TO GET PARTS OF RESULTS SIMULTANEOUSLY??
-### The only workable method I've found to run multiple connections is to open multiple instances of R, and they don't share stuff 
-### (stuff = data, environment?).  So you could do it, but you'd have to save the results parts and read them into your main instance.
 
 ############################
 ############################

@@ -92,9 +92,9 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, ...) {
 #		setDT(data)
 		tryCatch(
 			if (keep) {
-				results[[counter]]$processed <- resultsforceAndCall(1, FUN, data, ...)
+				results[[counter]]$processed <- forceAndCall(1, FUN, data, ...)
 			} else {
-				resultsforceAndCall(1, FUN, data, ...)
+				forceAndCall(1, FUN, data, ...)
 			},
 			error=function(e) {
 				log_error(e)

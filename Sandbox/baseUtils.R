@@ -104,10 +104,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 		return(FALSE)
 	}
 	as.is <- which(as.is)
-	if (is.null(FUN)) {
-		FUN <- return
-	}
-	else {
+	if (!is.null(FUN)) {
 		FUN <- match.fun(FUN)
 	}
 	counter <- 0
@@ -117,7 +114,14 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 		if ((data$stat) < 0L) {
 			break
 		}
-		log_info("Fetching query results", if (n > 0) { paste(" (", counter*n, "-", (counter+1)*n-1, ")", sep="") })
+		log_info("Fetching query results", 
+			if (n > 0) { 
+				paste(" (", counter*n, "-", (counter+1)*n-1, ")", sep="") 
+			}
+			else {
+				" (all)"
+			}
+		)
 		counter <- counter + 1
 		names(data$data) <- cData$names
 		for (i in as.is) {
@@ -129,6 +133,9 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 				timestamp = data$data[[i]] <- as.POSIXct(data$data[[i]]),
 				unknown = data$data[[i]] <- type.convert(data$data[[i]])
          	)
+		}
+		if (is.null(FUN)) {
+			return(data$data)
 		}
 		tryCatch(
 			if (keep) {

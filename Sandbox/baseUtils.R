@@ -129,16 +129,22 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 		)
 		counter <- counter + 1
 		names(data$data) <- cData$names
-		for (i in as.is) {
-			switch(cData$type[i],
-				int = data$data[[i]] <- as.integer(data$data[[i]]),
-				smallint = data$data[[i]] <- as.integer(data$data[[i]]),
-				decimal = data$data[[i]] <- as.numeric(data$data[[i]]),
-				date = data$data[[i]] <- as.Date(data$data[[i]]),
-				timestamp = data$data[[i]] <- as.POSIXct(data$data[[i]]),
-				unknown = data$data[[i]] <- type.convert(data$data[[i]])
-         	)
-		}
+		tryCatch(
+			for (i in as.is) {
+				switch(cData$type[i],
+					int = data$data[[i]] <- as.integer(data$data[[i]]),
+					smallint = data$data[[i]] <- as.integer(data$data[[i]]),
+					decimal = data$data[[i]] <- as.numeric(data$data[[i]]),
+					date = data$data[[i]] <- as.Date(data$data[[i]]),
+					timestamp = data$data[[i]] <- as.POSIXct(data$data[[i]]),
+					unknown = data$data[[i]] <- type.convert(data$data[[i]])
+         		)
+         	},
+         	error=function(e) {
+				log_error(e)
+				return(FALSE)
+			}
+		)
 		tryCatch(
 			if (keep) {
 				if (use.dots) {

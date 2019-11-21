@@ -104,8 +104,13 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 		return(FALSE)
 	}
 	as.is <- which(as.is)
-	if (!is.null(FUN)) {
+	if (is.null(FUN)) {
+		FUN <- return
+		use.dots <- FALSE
+	}
+	else {
 		FUN <- match.fun(FUN)
+		use.dots <- (...length() > 0) & (length(formals(FUN)) > 1L)
 	}
 	counter <- 0
 	results <- list()
@@ -134,14 +139,21 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 				unknown = data$data[[i]] <- type.convert(data$data[[i]])
          	)
 		}
-		if (is.null(FUN)) {
-			return(data$data)
-		}
 		tryCatch(
 			if (keep) {
-				results[[counter]]$processed <- forceAndCall(1, FUN, data$data, ...)
+				if (use.dots) {
+					results[[counter]]$processed <- forceAndCall(1, FUN, data$data, ...)
+				}
+				else {
+					results[[counter]]$processed <- forceAndCall(1, FUN, data$data)
+				}
 			} else {
-				forceAndCall(1, FUN, data$data, ...)
+				if (use.dots) {
+					forceAndCall(1, FUN, data$data, ...)
+				}
+				else {
+					forceAndCall(1, FUN, data$data)
+				}
 			},
 			error=function(e) {
 				log_error(e)

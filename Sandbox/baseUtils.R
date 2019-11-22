@@ -39,12 +39,12 @@ prepQuery <- function(con, query=NULL, rows_at_time=attr(con, "rows_at_time")) {
 	tryCatch(
 		odbcClearError(con),
 		error=function(e) {
-			log_warn(e)
+			log_error(e$message)
 			return(FALSE)
 		}
 	)
 	if (is.null(query)) {
-		log_warn("Missing value for 'query'")
+		log_error("Missing value for 'query'")
 		return(FALSE)
 	}
 	if (!is.character(query)) {
@@ -52,16 +52,16 @@ prepQuery <- function(con, query=NULL, rows_at_time=attr(con, "rows_at_time")) {
 		query <- as.character(query)
 	}
 	if (length(query) != 1) {
-		log_warn("Single value required for 'query'")
+		log_error("Single value required for 'query'")
 		return(FALSE)
 	}
 	if (nchar(query) < 1) {
-		log_warn("Empty 'query' provided")
+		log_error("Empty 'query' provided")
 		return(FALSE)
 	}
 	log_info("Prepping query: ", query)	
 	if (.Call(RODBC:::C_RODBCQuery, attr(con, "handle_ptr"), query, as.integer(rows_at_time)) < 0) {
-		log_error("error evaluating query '", query, "' using provided DB connection")
+		log_error("Error evaluating query using provided DB connection")
 		log_error(odbcGetErrMsg(con))
 		return(FALSE)
 	}
@@ -117,11 +117,14 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 	repeat {
 		data <- .Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE)
 		if ((data$stat) < 0L) {
+			if (data$stat == -1) {
+				log_error(odbcGetErrMsg(con))
+			}
 			break
 		}
 		log_info("Fetching query results", 
 			if (n > 0) { 
-				paste(" (", counter*n, "-", (counter+1)*n-1, ")", sep="") 
+				paste(" (", floor(counter*n), "-", (counter+1)*n-1, ")", sep="") 
 			}
 			else {
 				" (all)"
@@ -129,8 +132,8 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 		)
 		counter <- counter + 1
 		names(data$data) <- cData$names
-		tryCatch(
-			for (i in as.is) {
+		for (i in as.is) {
+			tryCatch(
 				switch(cData$type[i],
 					int = data$data[[i]] <- as.integer(data$data[[i]]),
 					smallint = data$data[[i]] <- as.integer(data$data[[i]]),
@@ -138,13 +141,12 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 					date = data$data[[i]] <- as.Date(data$data[[i]]),
 					timestamp = data$data[[i]] <- as.POSIXct(data$data[[i]]),
 					unknown = data$data[[i]] <- type.convert(data$data[[i]])
-         		)
-         	},
-         	error=function(e) {
-				log_error(e)
-				return(FALSE)
-			}
-		)
+         		),
+         		error=function(e) {
+					log_warn("Error converting ", cData$names[i], ": ", e$message)
+				}
+			)
+		}
 		tryCatch(
 			if (keep) {
 				if (use.dots) {
@@ -162,7 +164,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 				}
 			},
 			error=function(e) {
-				log_error(e)
+				log_error(e$message)
 				log_error(odbcGetErrMsg(con))
 				return(FALSE)
 			}

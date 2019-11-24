@@ -109,7 +109,13 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 		use.dots <- FALSE
 	}
 	else {
-		FUN <- match.fun(FUN)
+		tryCatch(
+			FUN <- match.fun(FUN),
+			error=function(e) {
+				log_error(e$message)
+				return(FALSE)				
+			}
+		)
 		use.dots <- (...length() > 0L) & (length(formals(FUN)) > 1L)
 	}
 	counter <- 0

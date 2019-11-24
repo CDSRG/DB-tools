@@ -69,7 +69,7 @@ prepQuery <- function(con, query=NULL, rows_at_time=attr(con, "rows_at_time")) {
 }
 
 #function still needs to be tested/debugged/etc.
-fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=FALSE, ...) {
+fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 	# test database connection
 	if (!RODBC:::odbcValidChannel(con)) {
 		log_error("Invalid DB connection")
@@ -110,10 +110,9 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 	}
 	else {
 		FUN <- match.fun(FUN)
-		use.dots <- (...length() > 0) & (length(formals(FUN)) > 1L)
+		use.dots <- (...length() > 0L) & (length(formals(FUN)) > 1L)
 	}
 	counter <- 0
-	results <- list()
 	repeat {
 		data <- .Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE)
 		if ((data$stat) < 0L) {
@@ -148,20 +147,11 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 			)
 		}
 		tryCatch(
-			if (keep) {
-				if (use.dots) {
-					results[[counter]]$processed <- forceAndCall(1, FUN, data$data, ...)
-				}
-				else {
-					results[[counter]]$processed <- forceAndCall(1, FUN, data$data)
-				}
-			} else {
-				if (use.dots) {
-					forceAndCall(1, FUN, data$data, ...)
-				}
-				else {
-					forceAndCall(1, FUN, data$data)
-				}
+			if (use.dots) {
+				forceAndCall(1, FUN, data$data, ...)
+			}
+			else {
+				forceAndCall(1, FUN, data$data)
 			},
 			error=function(e) {
 				log_error(e$message)
@@ -169,11 +159,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, keep=FALSE, FUN=NULL, as.is=F
 				return(FALSE)
 			}
 		)
-		if (keep) {
-			results[[counter]]$raw <- data$data
-		}
 	}
-	if (keep) { return(results) }
 	return(TRUE)
 }
 

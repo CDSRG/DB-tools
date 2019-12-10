@@ -119,10 +119,14 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 		use.dots <- (...length() > 0L) & (length(formals(FUN)) > 1L)
 	}
 	counter <- 0
+	nresults <- 0
 	repeat {
 		data <- .Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE)
 		if ((data$stat) < 0L) {
-			if (data$stat == -1) {
+			if (counter > 0L) {
+				log_info("Completed fetch (", nresults, " results)")
+			}
+			else if (data$stat == -1) {
 				log_error(odbcGetErrMsg(con))
 			}
 			break
@@ -165,6 +169,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 				return(FALSE)
 			}
 		)
+		nresults <- nresults + length(data$data[[1]])
 	}
 	return(TRUE)
 }

@@ -118,15 +118,18 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 						return(list(stat=-3))
 					})
 		if ((data$stat) < 0L) {
-			switch(data$stat,
-				-3 = log_error(paste0("Interrupted Connection: ", odbcGetErrMsg(con))),
-				-2 = log_error(paste0("No Data: ", odbcGetErrMsg(con))),
-				if (counter <= 0L) {
-					log_error(odbcGetErrMsg(con))
-				} else {
-					log_info("Completed fetch (", nresults, " results)")
-				}
-			)
+			if (data$stat == -3) {
+				log_error(paste0("Interrupted Connection: ", odbcGetErrMsg(con)))
+			}
+			else if (data$stat == -2) {
+				log_error(paste0("No Data: ", odbcGetErrMsg(con)))
+			}
+			else if (counter <= 0L) {
+				log_error(odbcGetErrMsg(con))
+			}
+			else {
+				log_info("Completed fetch (", nresults, " results)")
+			}
 			break
 		}
 		log_info("Fetching query results", 

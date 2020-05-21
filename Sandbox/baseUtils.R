@@ -7,15 +7,6 @@ if (!isNamespaceLoaded("RODBC")) {
 	suppressPackageStartupMessages(require("RODBC"))
 }
 
-# Load +/- install data.table package
-#if (!requireNamespace("data.table", partial=TRUE, quietly = TRUE)) {
-#	message("installing missing package 'data.table'")
-#	suppressMessages(install.packages("data.table", quiet=TRUE))
-#}
-#if (!isNamespaceLoaded("data.table")) {
-#	suppressPackageStartupMessages(require("data.table"))
-#}
-
 # Load +/- install logger package
 if (!requireNamespace("logger", partial=TRUE, quietly = TRUE)) {
 	message("installing missing package 'logger'")
@@ -68,7 +59,7 @@ prepQuery <- function(con, query=NULL, rows_at_time=attr(con, "rows_at_time")) {
 	return(TRUE)
 }
 
-#function still needs to be tested/debugged/etc.
+
 fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 	# test database connection
 	if (!RODBC:::odbcValidChannel(con)) {
@@ -121,14 +112,21 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 	counter <- 0
 	nresults <- 0
 	repeat {
-		data <- .Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE)
+		data <- tryCatch(.Call(RODBC:::C_RODBCFetchRows, attr(con, "handle_ptr"), n, buffsize, NA_character_, TRUE),
+					error=function(e) {
+						log_error(e)
+						return(list(stat=-3))
+					})
 		if ((data$stat) < 0L) {
-			if (counter > 0L) {
-				log_info("Completed fetch (", nresults, " results)")
-			}
-			else if (data$stat == -1) {
-				log_error(odbcGetErrMsg(con))
-			}
+			switch(data$stat,
+				-3 = log_error(paste0("Interrupted Connection: ", odbcGetErrMsg(con))),
+				-2 = log_error(paste0("No Data: ", odbcGetErrMsg(con))),
+				if (counter <= 0L) {
+					log_error(odbcGetErrMsg(con))
+				} else {
+					log_info("Completed fetch (", nresults, " results)")
+				}
+			)
 			break
 		}
 		log_info("Fetching query results", 

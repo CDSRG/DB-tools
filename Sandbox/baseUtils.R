@@ -176,6 +176,64 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 }
 
 
+storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
+	# not doing much input checking at moment, assume that:
+	# x is a data.frame, 
+	# hash is an environmental hash,
+	# cols, is a list of colnames to store in hash,
+	# keys, is a list of colnames to key in hash (for moment, only supporting single key),
+	# method, is a value specifying storeInHash behavior
+	keys <- intersect(keys, colnames(x))
+	if (length(keys) != 1) {
+		return()
+	}
+	if (!is.null(cols)) {
+		cols <- intersect(cols, colnames(x))
+		x <- as.data.frame(lapply(x[,union(keys,cols)], as.character))
+	}
+	if (method == "df.initial") {
+		doProcess <- function(x, hash) {   
+	    	thisData <- hash[[x[keys]]]
+	    	if (is.null(thisData)) {
+	    		hash[[x[keys]]] <- as.data.frame(x[cols])
+	    	}
+			else {
+				tryCatch(
+					hash[[x[keys]]] <- rbind(thisData, as.data.frame(x[cols]), stringsAsFactors = FALSE, make.row.names = FALSE),
+					error = function(e) { log_error(e) }
+				}
+			}
+		}
+	}
+	else if (method == "df.merge") {
+		doProcess <- function(x, hash) {   
+	    	thisData <- hash[[x[keys]]]
+	    	if (is.null(thisData)) {
+	    		hash[[x[keys]]] <- as.data.frame(x[cols])
+	    	}
+			else if (any(!cols %in% colnames(thisData))) {
+				cols.new <- setdiff(cols, colnames(thisData))
+				thisData[, cols.new] <- NA
+				newRow <- data.frame(as.list(rep(NA, length(thisData))))
+				names(newRow) <- colnames(thisData)
+				newRow[cols] <- x[cols]
+				hash[[x[keys]]] <- rbind(thisData, newRow, stringsAsFactors = FALSE, make.row.names = FALSE)
+			}
+			else if (any(!colnames(thisData) %in% cols)) {
+				newRow <- data.frame(as.list(rep(NA, length(thisData))))
+				names(newRow) <- names(thisData)
+				newRow[cols] <- x[cols]				
+				hash[[x[keys]]] <- rbind(thisData, newRow, stringsAsFactors = FALSE, make.row.names = FALSE)
+			}
+			else {
+				hash[[x[keys]]] <- rbind(thisData, as.data.frame(x[cols]), stringsAsFactors = FALSE, make.row.names = FALSE)
+			}
+		}
+	}
+	mapply(doProcess, x, hash)
+	return()   
+}
+
 ############################
 ############################
 ### must test in sql -- is "NOT BETWEEN" valid? -- tend to think not

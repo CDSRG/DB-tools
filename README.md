@@ -23,3 +23,11 @@ This folder contains the following data visualization tools:
 description of upset.R code here
 
 ## `Analysis` 
+
+## `Utilities` 
+
+This folder contains the following low-level tools:
+* `baseUtils.R` - SQL query and environmental hash interface tools
+
+### `baseUtils.R`
+description of baseUtils.R code here

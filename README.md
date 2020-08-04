@@ -8,6 +8,7 @@ The repository is organized into several directories and sub-directories as foll
   - `Cleaning` - containing a collection of tools to facilitate data cleaning
   - `Visualization` - containing a collection of database visualization tools
   - `Analysis` - containing a collection of tools for subsequent data analysis
+  - `Utilities` - containing a collection of basic and generalizable low-level tools
 
 ## `Querying`
 

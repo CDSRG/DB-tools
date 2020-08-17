@@ -201,7 +201,7 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
 				tryCatch(
 					hash[[x[keys]]] <- rbind(thisData, as.data.frame(x[cols]), stringsAsFactors = FALSE, make.row.names = FALSE),
 					error = function(e) { log_error(e) }
-				}
+				)
 			}
 		}
 	}

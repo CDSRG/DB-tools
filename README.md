@@ -8,6 +8,7 @@ The repository is organized into several directories and sub-directories as foll
   - `Cleaning` - containing a collection of tools to facilitate data cleaning
   - `Visualization` - containing a collection of database visualization tools
   - `Analysis` - containing a collection of tools for subsequent data analysis
+  - `Utilities` - containing a collection of basic and generalizable low-level tools
 
 ## `Querying`
 
@@ -22,3 +23,11 @@ This folder contains the following data visualization tools:
 description of upset.R code here
 
 ## `Analysis` 
+
+## `Utilities` 
+
+This folder contains the following low-level tools:
+* `baseUtils.R` - SQL query and environmental hash interface tools
+
+### `baseUtils.R`
+description of baseUtils.R code here

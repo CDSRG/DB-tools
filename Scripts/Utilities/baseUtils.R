@@ -69,16 +69,16 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 	cols <- .Call(RODBC:::C_RODBCNumCols, attr(con, "handle_ptr"))
 	if (cols < 0L) {
 		log_error("No data")
-        return(FALSE)
-    }
-    cData <- .Call(RODBC:::C_RODBCColData, attr(con, "handle_ptr"))
+		return(FALSE)
+	}
+	cData <- .Call(RODBC:::C_RODBCColData, attr(con, "handle_ptr"))
 	if (!is.numeric(n) | (length(n) != 1)) { 
 		n <- 0
 	}
 	n <- max(0, floor(n), na.rm=TRUE)
 	if (is.logical(as.is) & length(as.is) == 1) {
 		as.is <- rep(as.is, length=cols)
-    }
+	}
 	else if (is.numeric(as.is)) {
 		if (any(as.is < 1 | as.is > cols)) 
 			log_warn("invalid numeric 'as.is' values: ", as.is[which(as.is < 1 | as.is > cols)])
@@ -151,8 +151,8 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 					date = data$data[[i]] <- as.Date(data$data[[i]]),
 					timestamp = data$data[[i]] <- as.POSIXct(data$data[[i]]),
 					unknown = data$data[[i]] <- type.convert(data$data[[i]])
-         		),
-         		error=function(e) {
+				),
+				error=function(e) {
 					log_warn("Error converting ", cData$names[i], ": ", e$message)
 				}
 			)
@@ -192,11 +192,11 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
 		x <- as.data.frame(lapply(x[,union(keys,cols)], as.character))
 	}
 	if (method == "df.initial") {
-		doProcess <- function(x, hash) {   
-	    	thisData <- hash[[x[keys]]]
-	    	if (is.null(thisData)) {
-	    		hash[[x[keys]]] <- as.data.frame(x[cols])
-	    	}
+		doProcess <- function(x, hash) { 
+			thisData <- hash[[x[keys]]]
+			if (is.null(thisData)) {
+				hash[[x[keys]]] <- as.data.frame(x[cols])
+			}
 			else {
 				tryCatch(
 					hash[[x[keys]]] <- rbind(thisData, as.data.frame(x[cols]), stringsAsFactors = FALSE, make.row.names = FALSE),
@@ -206,11 +206,11 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
 		}
 	}
 	else if (method == "df.merge") {
-		doProcess <- function(x, hash) {   
-	    	thisData <- hash[[x[keys]]]
-	    	if (is.null(thisData)) {
-	    		hash[[x[keys]]] <- as.data.frame(x[cols])
-	    	}
+		doProcess <- function(x, hash) { 
+			thisData <- hash[[x[keys]]]
+			if (is.null(thisData)) {
+				hash[[x[keys]]] <- as.data.frame(x[cols])
+			}
 			else if (any(!cols %in% colnames(thisData))) {
 				cols.new <- setdiff(cols, colnames(thisData))
 				thisData[, cols.new] <- NA
@@ -231,7 +231,7 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
 		}
 	}
 	mapply(doProcess, x, hash)
-	return()   
+	return() 
 }
 
 ############################

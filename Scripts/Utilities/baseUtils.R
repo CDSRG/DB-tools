@@ -191,8 +191,11 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
 		cols <- intersect(cols, colnames(x))
 		x <- as.data.frame(lapply(x[,union(keys,cols)], as.character))
 	}
+	else {
+		cols <- colnames(x)
+	}
 	if (method == "df.initial") {
-		doProcess <- function(x, hash) { 
+		doProcess <- function(x) { 
 			thisData <- hash[[x[keys]]]
 			if (is.null(thisData)) {
 				hash[[x[keys]]] <- as.data.frame(x[cols])
@@ -206,7 +209,7 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
 		}
 	}
 	else if (method == "df.merge") {
-		doProcess <- function(x, hash) { 
+		doProcess <- function(x) { 
 			thisData <- hash[[x[keys]]]
 			if (is.null(thisData)) {
 				hash[[x[keys]]] <- as.data.frame(x[cols])
@@ -230,7 +233,7 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
 			}
 		}
 	}
-	mapply(doProcess, x, hash)
+	apply(x, 1, FUN=doProcess)
 	return() 
 }
 

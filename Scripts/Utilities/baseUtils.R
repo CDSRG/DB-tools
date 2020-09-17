@@ -204,7 +204,7 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
     doProcess <- function(x) { 
       thisData <- hash[[x[keys]]]
       if (is.null(thisData)) {
-        hash[[x[keys]]] <- as.data.frame(t(x[cols]))
+        hash[[x[keys]]] <- as.data.frame(t(x[cols]), stringsAsFactors = FALSE)
       }
       else {
         tryCatch(
@@ -218,7 +218,7 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
     doProcess <- function(x) { 
       thisData <- hash[[x[keys]]]
       if (is.null(thisData)) {
-        hash[[x[keys]]] <- as.data.frame(t(x[cols]))
+        hash[[x[keys]]] <- as.data.frame(t(x[cols]), stringsAsFactors = FALSE)
       }
       else if (any(!cols %in% colnames(thisData))) {
         cols.new <- setdiff(cols, colnames(thisData))

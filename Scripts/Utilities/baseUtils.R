@@ -178,20 +178,16 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 
 storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
   # not doing much input checking at moment, assume that:
-  # x is a data.frame, 
+  # x is a list, 
   # hash is an environmental hash,
   # cols, is a list of colnames to store in hash,
   # keys, is a list of colnames to key in hash (for moment, only supporting single key),
   # method, is a value specifying storeInHash behavior
-  
   col.names <- names(x)
-
   keys <- intersect(keys, col.names)
-  
   if (length(keys) != 1) {
     return()
   }
-  
   if (!is.null(cols)) {
     cols <- intersect(cols, col.names)
     x <- as.data.frame(lapply(x[union(keys,cols)], as.character), stringsAsFactors = FALSE)
@@ -199,7 +195,6 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
     cols <- col.names
     x <- as.data.frame(lapply(x, as.character), stringsAsFactors = FALSE)
   }
-
   if (method == "df.initial") {
     doProcess <- function(x) { 
       thisData <- hash[[x[keys]]]

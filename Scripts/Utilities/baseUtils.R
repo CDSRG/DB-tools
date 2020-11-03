@@ -197,7 +197,7 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
   }
   if (method == "df.initial") {
     doProcess <- function(x) { 
-      thisData <- hash[[x[keys]]]
+      thisData <- hash[[as.character(x[keys])]]
       if (is.null(thisData)) {
         hash[[x[keys]]] <- as.data.frame(t(x[cols]), stringsAsFactors = FALSE)
       }
@@ -211,7 +211,7 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
   }
   else if (method == "df.merge") {
     doProcess <- function(x) { 
-      thisData <- hash[[x[keys]]]
+      thisData <- hash[[as.character(x[keys])]]
       if (is.null(thisData)) {
         hash[[x[keys]]] <- as.data.frame(t(x[cols]), stringsAsFactors = FALSE)
       }

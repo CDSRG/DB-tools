@@ -67,7 +67,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 		return(FALSE)
 	}
 	cols <- .Call(RODBC:::C_RODBCNumCols, attr(con, "handle_ptr"))
-	if (cols < 0L) {
+	if (cols <= 0L) {
 		log_error("No data")
 		return(FALSE)
 	}
@@ -183,59 +183,59 @@ storeInHash <- function(x, hash, keys=NULL, cols=NULL, method="df.initial") {
   # cols, is a list of colnames to store in hash,
   # keys, is a list of colnames to key in hash (for moment, only supporting single key),
   # method, is a value specifying storeInHash behavior
-  col.names <- names(x)
-  keys <- intersect(keys, col.names)
-  if (length(keys) != 1) {
-    return()
-  }
-  if (!is.null(cols)) {
-    cols <- intersect(cols, col.names)
-    x <- as.data.frame(lapply(x[union(keys,cols)], as.character), stringsAsFactors = FALSE)
-  } else {
-    cols <- col.names
-    x <- as.data.frame(lapply(x, as.character), stringsAsFactors = FALSE)
-  }
-  if (method == "df.initial") {
-    doProcess <- function(x) { 
-      thisData <- hash[[as.character(x[keys])]]
-      if (is.null(thisData)) {
-        hash[[x[keys]]] <- as.data.frame(t(x[cols]), stringsAsFactors = FALSE)
-      }
-      else {
-        tryCatch(
-          hash[[x[keys]]] <- rbind(thisData, as.data.frame(t(x[cols])), stringsAsFactors = FALSE, make.row.names = FALSE),
-          error = function(e) { log_error(e) }
-        )
-      }
-    }
-  }
-  else if (method == "df.merge") {
-    doProcess <- function(x) { 
-      thisData <- hash[[as.character(x[keys])]]
-      if (is.null(thisData)) {
-        hash[[x[keys]]] <- as.data.frame(t(x[cols]), stringsAsFactors = FALSE)
-      }
-      else if (any(!cols %in% colnames(thisData))) {
-        cols.new <- setdiff(cols, colnames(thisData))
-        thisData[, cols.new] <- NA
-        newRow <- data.frame(as.list(rep(NA, length(thisData))))
-        names(newRow) <- colnames(thisData)
-        newRow[cols] <- x[cols]
-        hash[[x[keys]]] <- rbind(thisData, newRow, stringsAsFactors = FALSE, make.row.names = FALSE)
-      }
-      else if (any(!colnames(thisData) %in% cols)) {
-        newRow <- data.frame(as.list(rep(NA, length(thisData))))
-        names(newRow) <- names(thisData)
-        newRow[cols] <- x[cols]				
-        hash[[x[keys]]] <- rbind(thisData, newRow, stringsAsFactors = FALSE, make.row.names = FALSE)
-      }
-      else {
-        hash[[x[keys]]] <- rbind(thisData, as.data.frame(t(x[cols])), stringsAsFactors = FALSE, make.row.names = FALSE)
-      }
-    }
-  }
-  apply(x, 1, FUN=doProcess)
-  return() 
+	col.names <- names(x)
+	keys <- intersect(keys, col.names)
+	if (length(keys) != 1) {
+		return()
+	}
+	if (!is.null(cols)) {
+		cols <- intersect(cols, col.names)
+		x <- as.data.frame(lapply(x[union(keys,cols)], as.character), stringsAsFactors = FALSE)
+	} else {
+		cols <- col.names
+		x <- as.data.frame(lapply(x, as.character), stringsAsFactors = FALSE)
+	}
+	if (method == "df.initial") {
+		doProcess <- function(x) { 
+			thisData <- hash[[as.character(x[keys])]]
+			if (is.null(thisData)) {
+				hash[[x[keys]]] <- as.data.frame(t(x[cols]), stringsAsFactors = FALSE)
+			}
+			else {
+				tryCatch(
+					hash[[x[keys]]] <- rbind(thisData, as.data.frame(t(x[cols])), stringsAsFactors = FALSE, make.row.names = FALSE),
+					error = function(e) { log_error(e) }
+				)
+			}
+		}
+	}
+	else if (method == "df.merge") {
+		doProcess <- function(x) { 
+			thisData <- hash[[as.character(x[keys])]]
+			if (is.null(thisData)) {
+				hash[[x[keys]]] <- as.data.frame(t(x[cols]), stringsAsFactors = FALSE)
+			}
+			else if (any(!cols %in% colnames(thisData))) {
+				cols.new <- setdiff(cols, colnames(thisData))
+				thisData[, cols.new] <- NA
+				newRow <- data.frame(as.list(rep(NA, length(thisData))))
+				names(newRow) <- colnames(thisData)
+				newRow[cols] <- x[cols]
+				hash[[x[keys]]] <- rbind(thisData, newRow, stringsAsFactors = FALSE, make.row.names = FALSE)
+			}
+			else if (any(!colnames(thisData) %in% cols)) {
+				newRow <- data.frame(as.list(rep(NA, length(thisData))))
+				names(newRow) <- names(thisData)
+				newRow[cols] <- x[cols]				
+				hash[[x[keys]]] <- rbind(thisData, newRow, stringsAsFactors = FALSE, make.row.names = FALSE)
+			}
+			else {
+				hash[[x[keys]]] <- rbind(thisData, as.data.frame(t(x[cols])), stringsAsFactors = FALSE, make.row.names = FALSE)
+			}
+		}
+	}
+	apply(x, 1, FUN=doProcess)
+	return() 
 }
 
 

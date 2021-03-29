@@ -117,7 +117,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 						log_error(e)
 						return(list(stat=-3))
 					})
-		if ((data$stat) < 0L) {
+		if ((data$stat) <= 0L) {
 			if (data$stat == -3) {
 				log_error(paste0("Interrupted Connection: ", odbcGetErrMsg(con)))
 			}
@@ -130,6 +130,11 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 			else {
 				log_info("Completed fetch (", nresults, " results)")
 			}
+			break
+		}
+		data.len <- length(data$data[[1]])
+		if (data.len < 1L) {
+			log_info("Completed fetch (", nresults, " results)")
 			break
 		}
 		log_info("Fetching query results", 
@@ -157,7 +162,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 				}
 			)
 		}
-		tryCatch(
+		if (!tryCatch(
 			if (use.dots) {
 				forceAndCall(1, FUN, data$data, ...)
 			}
@@ -169,8 +174,10 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 				log_error(odbcGetErrMsg(con))
 				return(FALSE)
 			}
-		)
-		nresults <- nresults + length(data$data[[1]])
+		)) { 
+			return(FALSE)
+		}
+		nresults <- nresults + data.len
 	}
 	return(TRUE)
 }

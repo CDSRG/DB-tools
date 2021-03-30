@@ -104,7 +104,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 			FUN <- match.fun(FUN),
 			error=function(e) {
 				log_error(e$message)
-				return(FALSE)				
+				stop()		
 			}
 		)
 		use.dots <- (...length() > 0L) & (length(formals(FUN)) > 1L)
@@ -162,7 +162,7 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 				}
 			)
 		}
-		if (!tryCatch(
+		tryCatch(
 			if (use.dots) {
 				forceAndCall(1, FUN, data$data, ...)
 			}
@@ -172,11 +172,8 @@ fetchQuery <- function(con, n=NULL, buffsize=1000, FUN=NULL, as.is=FALSE, ...) {
 			error=function(e) {
 				log_error(e$message)
 				log_error(odbcGetErrMsg(con))
-				return(FALSE)
 			}
-		)) { 
-			return(FALSE)
-		}
+		)
 		nresults <- nresults + data.len
 	}
 	return(TRUE)
